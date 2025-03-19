@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Toolbox", "Toolbox\Toolbox.csproj", "{47ED74CD-8A43-422D-9E5D-EFD1654CD1E4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{0F3BF55D-6A76-4875-B532-B72D901BF570}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\ci.yml = .github\workflows\ci.yml
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ToolboxTests", "ToolboxTests\ToolboxTests.csproj", "{C57131E3-663B-49A2-A728-AF94D68BEBC8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{47ED74CD-8A43-422D-9E5D-EFD1654CD1E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{47ED74CD-8A43-422D-9E5D-EFD1654CD1E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{47ED74CD-8A43-422D-9E5D-EFD1654CD1E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{47ED74CD-8A43-422D-9E5D-EFD1654CD1E4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C57131E3-663B-49A2-A728-AF94D68BEBC8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C57131E3-663B-49A2-A728-AF94D68BEBC8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C57131E3-663B-49A2-A728-AF94D68BEBC8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C57131E3-663B-49A2-A728-AF94D68BEBC8}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DA282F23-A565-4C59-9718-5CD978272DC8}
+	EndGlobalSection
+EndGlobal
