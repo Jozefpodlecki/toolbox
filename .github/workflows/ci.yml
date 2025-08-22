@@ -11,11 +11,5 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Dotnet
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '9.0.x'
-      - name: Test
-        run: dotnet build
+      - uses: actions/checkout@v4
+      - run: cargo build --release
