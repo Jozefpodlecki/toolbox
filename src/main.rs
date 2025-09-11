@@ -2,6 +2,7 @@ mod app;
 mod route;
 mod pages;
 mod state;
+mod components;
 
 use app::App;
 use log::Level;

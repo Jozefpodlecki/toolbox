@@ -1,7 +1,3 @@
 node_modules/
-/dist/
-/target/
-/e2e/target/
-/app/target
-/web/dist
-/Cargo.lock
+dist/
+target/
