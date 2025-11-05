@@ -1,0 +1,15 @@
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/geist-mono";
+
+@import "tailwindcss";
+
+@plugin '@tailwindcss/typography';
+@plugin '@tailwindcss/forms';
+
+:root {
+  --font-size: medium;
+}
+
+html, body {
+  color: white;
+}

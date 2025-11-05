@@ -1,0 +1,19 @@
+[
+  {
+    "type": "latest"
+  },
+  {
+    "type": "failed"
+  },
+  {
+    "type": "synthetic",
+    "version": "1.5.0",
+    "with_total_header": true,
+    "total_size": 209715200,
+    "iterations": 10,
+    "delay": {
+      "secs": 1,
+      "nanos": 0
+    }
+  }
+]
