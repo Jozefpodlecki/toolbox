@@ -1,10 +1,10 @@
-use std::{error::Error, ffi::OsStr, sync::{atomic::{AtomicBool, Ordering}, Arc}};
+use std::{error::Error};
 
 use log::*;
 use serde::Deserialize;
 use tauri::{App, AppHandle, Listener, Manager};
 
-use crate::{background::BackgroundWorker, context::AppContext, emitter::TauriEmitter, notifier::SetupEndedNotifier, process::*, processor::DataSyncService, settings::*, shell::ShellManager, ui::setup_tray, updater::*};
+use crate::notifier::SetupEndedNotifier;
 
 pub fn setup(app: &mut App) -> Result<(), Box<dyn Error>> {
     

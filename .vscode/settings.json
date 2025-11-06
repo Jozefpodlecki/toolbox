@@ -6,4 +6,8 @@
     "search.exclude": {
         "**/node_modules": true,
     },
+    "rust-analyzer.linkedProjects": [
+        "app/Cargo.toml",
+    	"utils/resize-image/Cargo.toml",
+  ]
 }

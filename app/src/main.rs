@@ -3,24 +3,29 @@
 #![feature(duration_constructors_lite)]
 
 mod setup;
+mod handler;
 mod updater;
 mod notifier;
 mod panic;
 
 use anyhow::Result;
 use log::LevelFilter;
-use crate::notifier::*;
+use crate::{handler::generate_handlers, notifier::*, panic::set_hook};
+use crate::notifier::SetupEndedNotifier;
 
 #[tokio::main]
 async fn main() -> Result<()> {
     set_hook();
     let tauri_context: tauri::Context<_> = tauri::generate_context!();
     let package_info = tauri_context.package_info();
-    let context = AppContext::new(package_info.version.to_string(), package_info.name.clone())?;
 
     tauri::async_runtime::set(tokio::runtime::Handle::current());
+       
+    let app_path = std::env::current_exe()?;
+    let current_dir = app_path.parent().unwrap().to_owned();
 
     tauri::Builder::default()
+        .manage(SetupEndedNotifier::new())
         .plugin(tauri_plugin_log::Builder::new()
             .level_for("tao", LevelFilter::Error)
             .target(tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::Folder { 
@@ -40,6 +45,7 @@ async fn main() -> Result<()> {
                 .skip_initial_state("main")
                 .build(),
         )
+        .plugin(tauri_plugin_websocket::init())
         .setup(setup::setup)
         // .on_window_event(on_window_event)
         .invoke_handler(generate_handlers())
