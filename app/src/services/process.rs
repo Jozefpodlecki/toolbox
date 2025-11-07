@@ -1,9 +1,9 @@
-use std::{sync::{Arc, MappedRwLockReadGuard, Mutex, RwLock, RwLockReadGuard}, time::{Duration, Instant}};
+use std::{sync::{Arc, RwLock}, time::{Duration, Instant}};
 
 use winapi::{shared::minwindef::FALSE, um::{handleapi::{CloseHandle, INVALID_HANDLE_VALUE}, processthreadsapi::OpenProcess, tlhelp32::{CreateToolhelp32Snapshot, Process32FirstW, Process32NextW, PROCESSENTRY32W, TH32CS_SNAPPROCESS}, winnt::{PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_VM_READ}}};
 
 use log::*;
-use crate::{models::{Process, ProcessNode}, services::utils::*, utils::widestr_to_string};
+use crate::{models::*, services::utils::*, utils::widestr_to_string};
 use anyhow::{bail, Result};
 
 pub struct ProcessManager {
@@ -28,7 +28,7 @@ impl ProcessManager {
         }
     }
 
-    pub fn get(&self) -> Result<MappedRwLockReadGuard<'_, Vec<ProcessNode>>> {
+    pub fn get(&self, args: GetProcessArgs) -> Result<ProcessResult> {
         {
             let guard = self.cache.read().unwrap();
             if guard.queried_on.elapsed() > self.query_interval {
@@ -38,7 +38,79 @@ impl ProcessManager {
         }
 
         let guard = self.cache.read().unwrap();
-        Ok(RwLockReadGuard::map(guard, |c| &c.items))
+
+        match args.display {
+            ProcessDisplay::Hierarchy => {
+                let vec = match args.name {
+                    Some(name) => guard.items
+                        .iter()
+                        .filter(|pr| pr.process.name.to_lowercase().contains(&name.to_lowercase()))
+                        .cloned()
+                        .collect(),
+                    None => guard.items.clone()
+                };
+
+                Ok(ProcessResult::Hierarchy(vec))
+            }
+
+            ProcessDisplay::List => {
+                // flatten nodes to Vec<Process>
+                fn flatten(node: &ProcessNode, out: &mut Vec<Process>) {
+                    out.push(node.process.clone());
+                    for c in &node.children {
+                        flatten(c, out);
+                    }
+                }
+
+                let mut out = vec![];
+
+                for n in &guard.items {
+                    flatten(n, &mut out);
+                }
+
+                if let Some(name) = args.name {
+                    out.retain(|p| p.name.to_lowercase().contains(&name.to_lowercase()));
+                }
+
+                out.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
+
+                Ok(ProcessResult::List(out))
+            }
+        }
+    }
+
+    pub fn get_by_id(&self, id: u32) -> Result<Option<Process>> {
+        {
+            let guard = self.cache.read().unwrap();
+            if guard.queried_on.elapsed() > self.query_interval {
+                drop(guard);
+                self.refresh_cache()?;
+            }
+        }
+
+        let guard = self.cache.read().unwrap();
+
+        fn find(node: &ProcessNode, id: u32) -> Option<Process> {
+            if node.process.id == id {
+                return Some(node.process.clone());
+            }
+
+            for child in &node.children {
+                if let Some(proc) = find(child, id) {
+                    return proc.into();
+                }
+            }
+
+            None
+        }
+
+        for n in guard.items.iter() {
+            if let Some(proc) = find(n, id) {
+                return Ok(Some(proc));
+            }
+        }
+
+        Ok(None)
     }
 
     fn refresh_cache(&self) -> Result<()> {

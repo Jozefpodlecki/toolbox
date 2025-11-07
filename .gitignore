@@ -16,4 +16,4 @@ static/
 node_modules/
 dist/
 target/
-app/icons/*
+

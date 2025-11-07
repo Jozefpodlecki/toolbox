@@ -1,9 +1,16 @@
 <script lang="ts">
-    import Blocks from "~icons/tabler/blocks";
+    import { page } from "$app/state";
+    import IconBlocks from "~icons/tabler/blocks";
+    import IconRefresh from "~icons/lucide/refresh-cw";
+
+    const onCheck = () => {
+
+    }
 
 </script>
 
+<!-- page.url.pathname === href -->
 <nav class="flex flex-col gap-1">
-    <button type="button" class="p-1"><Blocks/></button>
-    <button type="button" class="p-1"><Blocks/></button>
+    <a href="/process" class="p-1"><IconBlocks/></a>
+    <button type="button" class="p-1 mt-auto" onclick={onCheck}><IconRefresh/></button>
 </nav>

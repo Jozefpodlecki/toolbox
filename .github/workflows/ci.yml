@@ -20,5 +20,9 @@ jobs:
             ~/.cargo/git
             target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - run: npm ci
+        working-directory: web
+      - run: npm run build
+        working-directory: web
       - run: cargo build --release
         working-directory: app

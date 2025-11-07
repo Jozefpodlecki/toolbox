@@ -1,12 +1,33 @@
 use std::path::PathBuf;
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[derive(Debug, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct LoadResult {
     pub session_id: Uuid
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct GetProcessArgs {
+    pub name: Option<String>,
+    pub display: ProcessDisplay
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub enum ProcessDisplay {
+    List,
+    Hierarchy
+}
+
+#[derive(Debug, Serialize, Clone)]
+#[serde(tag = "type", content = "data", rename_all = "camelCase")]
+pub enum ProcessResult {
+    List(Vec<Process>),
+    Hierarchy(Vec<ProcessNode>)
 }
 
 #[derive(Debug, Serialize, Clone)]

@@ -6,6 +6,7 @@ use crate::handler::{app, process};
 pub fn generate_handlers() -> Box<dyn Fn(Invoke) -> bool + Send + Sync> {
     Box::new(generate_handler![
         app::load,
-        process::get_processes
+        process::get_processes,
+        process::get_process
     ])
 }

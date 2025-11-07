@@ -3,7 +3,6 @@ use anyhow::{Context, Result};
 use async_trait::async_trait;
 use log::*;
 use tauri::{async_runtime::{spawn, JoinHandle}};
-use tokio::time::{sleep, Duration};
 
 use crate::updater::status::{UpdateStatus, UpdateStatusHandle};
 
