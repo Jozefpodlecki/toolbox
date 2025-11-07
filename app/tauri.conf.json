@@ -45,7 +45,7 @@
         "minWidth": 500,
         "minHeight": 350,
         "alwaysOnTop": true,
-        "visible": false,
+        "visible": true,
         "focus": false,
         "useHttpsScheme": true,
         "backgroundColor": "000000"
@@ -65,7 +65,7 @@
         "minWidth": 800,
         "minHeight": 600,
         "alwaysOnTop": true,
-        "visible": true,
+        "visible": false,
         "focus": false,
         "useHttpsScheme": true,
         "backgroundColor": "000000"

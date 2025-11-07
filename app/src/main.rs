@@ -1,15 +1,22 @@
-#![allow(warnings)]
+#![allow(unsafe_op_in_unsafe_fn)]
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 #![feature(duration_constructors_lite)]
+#![feature(mapped_lock_guards)]
 
 mod setup;
 mod handler;
 mod updater;
+mod services;
 mod notifier;
 mod panic;
+mod models;
+mod context;
+mod utils;
 
 use anyhow::Result;
 use log::LevelFilter;
+use crate::context::AppContext;
+use crate::services::ProcessManager;
 use crate::{handler::generate_handlers, notifier::*, panic::set_hook};
 use crate::notifier::SetupEndedNotifier;
 
@@ -25,7 +32,9 @@ async fn main() -> Result<()> {
     let current_dir = app_path.parent().unwrap().to_owned();
 
     tauri::Builder::default()
+        .manage(AppContext::new())
         .manage(SetupEndedNotifier::new())
+        .manage(ProcessManager::new())
         .plugin(tauri_plugin_log::Builder::new()
             .level_for("tao", LevelFilter::Error)
             .target(tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::Folder { 

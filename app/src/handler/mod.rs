@@ -1,4 +1,5 @@
 mod handlers;
+mod app;
 mod process;
 mod error;
 

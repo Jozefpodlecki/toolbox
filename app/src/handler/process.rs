@@ -1,20 +1,12 @@
-use anyhow::Context;
-use log::*;
-use serde::Serialize;
-use tauri::ipc::Invoke;
-use tauri::{command, generate_handler, AppHandle, Emitter, Manager, State};
+use tauri::{command, State};
+use crate::{models::ProcessNode, services::ProcessManager};
+
 use super::error::*;
 
-#[derive(Debug, Serialize, Clone, Default)]
-#[serde(rename_all = "camelCase")]
-pub struct Process {
-
-}
-
 #[command]
-pub fn get_processes() -> Result<Vec<Process>> {
+pub fn get_processes(process_manager: State<ProcessManager>) -> Result<Vec<ProcessNode>> {
   
-    let process = vec![];
+    let process = process_manager.get()?;
 
-    Ok(process)
+    Ok(process.to_vec())
 }
