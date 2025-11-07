@@ -1,5 +1,5 @@
 export interface LoadResult {
-    
+    sessionId: string;
 }
 
 export interface Process {

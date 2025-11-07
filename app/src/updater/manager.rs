@@ -1,5 +1,6 @@
 use std::{marker::PhantomData, sync::{Arc, Mutex}};
 use anyhow::{Context, Result};
+use async_trait::async_trait;
 use log::*;
 use tauri::{async_runtime::{spawn, JoinHandle}};
 use tokio::time::{sleep, Duration};
@@ -9,6 +10,14 @@ use crate::updater::status::{UpdateStatus, UpdateStatusHandle};
 use super::{traits::{Updatable, UpdateProvider}};
 
 type UpdateData<U> = Arc<Mutex<Option<(U, Vec<u8>)>>>;
+
+pub type UpdateManager = Box<dyn UpdateManagerTrait>;
+
+#[async_trait]
+pub trait UpdateManagerTrait: Send + Sync {
+    async fn check_updates(&self, install: bool);
+    fn install(&self) -> Result<()>;
+}
 
 pub struct UpdateManagerImpl<P, U>
 where
@@ -21,13 +30,12 @@ where
     pub(crate) update_data: UpdateData<U>, 
 }
 
-impl<P, U> UpdateManagerImpl<P, U>
+#[async_trait]
+impl<P, U> UpdateManagerTrait for UpdateManagerImpl<P, U>
 where
     P: UpdateProvider<U>,
-    U: Updatable,
-{
-    pub async fn check_updates(&self, install: bool) {
-
+    U: Updatable {
+    async fn check_updates(&self, install: bool) {
         let status = self.status.clone();
         status.set(UpdateStatus::Checking);
         
@@ -49,7 +57,7 @@ where
         }
     }
 
-    pub fn install(&self) -> Result<()> {
+    fn install(&self) -> Result<()> {
 
         let mut guard = self.update_data.lock().unwrap();
         let (update, data) = guard.take().context("No update available")?;
@@ -61,7 +69,13 @@ where
 
         Ok(())
     }
+}
 
+impl<P, U> UpdateManagerImpl<P, U>
+where
+    P: UpdateProvider<U>,
+    U: Updatable,
+{
     async fn on_update(update: U, status: UpdateStatusHandle, install: bool, update_data: UpdateData<U>) -> Result<()> {
         let status_chunk = status.clone();
         let status_finish = status.clone();
