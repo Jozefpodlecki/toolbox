@@ -12,14 +12,20 @@
 
 </script>
 
-<div data-tauri-drag-region class="h-screen w-screen flex">
+<div class="h-screen w-screen flex flex-row">
     <Navigation/>
-    <main class="flex-1 flex flex-col bg-gray-900">
-        <header data-tauri-drag-region class="p-1 text-center">Toolbox</header>
-        <main data-tauri-drag-region class="flex-1 bg-gray-800 overflow-auto">
-			{@render children?.()}
+
+    <div class="flex-1 flex flex-col">
+        <header class="p-2 text-center bg-gray-900" data-tauri-drag-region>Toolbox</header>
+
+        <main class="flex-1 bg-gray-800 overflow-auto"  data-tauri-drag-region>
+            {@render children?.()}
         </main>
-    </main>
+
+        <footer class="bg-amber-800 h-[30px] w-full">
+            Footer
+        </footer>
+    </div>
 </div>
 
 <style>
