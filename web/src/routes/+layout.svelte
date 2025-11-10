@@ -1,7 +1,8 @@
 <script lang="ts">
 	import type { Snippet } from "svelte";
 	import "../app.css";
-    import Navigation from "./(app)/home/Navigation.svelte";
+    import Navigation from "../lib/components/Navigation.svelte";
+    import Footer from "$lib/components/Footer.svelte";
 
 	interface Props {
 		children?: Snippet;
@@ -18,13 +19,11 @@
     <div class="flex-1 flex flex-col">
         <header class="p-2 text-center bg-gray-900" data-tauri-drag-region>Toolbox</header>
 
-        <main class="flex-1 bg-gray-800 overflow-auto"  data-tauri-drag-region>
+        <main class="flex-1 bg-gray-800 overflow-auto" data-tauri-drag-region>
             {@render children?.()}
         </main>
 
-        <footer class="bg-amber-800 h-[30px] w-full">
-            Footer
-        </footer>
+        <Footer/>
     </div>
 </div>
 

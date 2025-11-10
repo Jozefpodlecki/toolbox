@@ -16,7 +16,7 @@ mod utils;
 use anyhow::Result;
 use log::LevelFilter;
 use crate::context::AppContext;
-use crate::services::ProcessManager;
+use crate::services::{InstalledProgramsService, ProcessManager};
 use crate::{handler::generate_handlers, notifier::*, panic::set_hook};
 use crate::notifier::SetupEndedNotifier;
 
@@ -35,6 +35,7 @@ async fn main() -> Result<()> {
         .manage(AppContext::new())
         .manage(SetupEndedNotifier::new())
         .manage(ProcessManager::new())
+        .manage(InstalledProgramsService::new())
         .plugin(tauri_plugin_log::Builder::new()
             .level_for("tao", LevelFilter::Error)
             .target(tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::Folder { 

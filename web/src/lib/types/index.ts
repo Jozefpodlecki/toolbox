@@ -2,6 +2,17 @@ export interface LoadResult {
     sessionId: string;
 }
 
+export interface Paged<T> {
+    page: number;
+    items: T[];
+    total: number;
+}
+
+export interface Program {
+    name: string;
+    path: string;
+}
+
 export interface Process {
     id: number;
     parentId: number;

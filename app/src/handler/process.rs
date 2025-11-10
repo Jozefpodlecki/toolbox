@@ -18,3 +18,11 @@ pub fn get_process(process_manager: State<ProcessManager>, id: u32) -> Result<Op
 
     Ok(process)
 }
+
+#[command]
+pub fn kill_process(process_manager: State<ProcessManager>, id: u32) -> Result<Option<Process>> {
+  
+    let process = process_manager.get_by_id(id)?;
+
+    Ok(process)
+}

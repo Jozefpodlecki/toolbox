@@ -13,7 +13,7 @@ pub struct ProcessManager {
 
 #[derive(Debug)]
 pub struct CacheEntry {
-    queried_on: Instant,
+    refreshed_on: Instant,
     items: Vec<ProcessNode>
 }
 
@@ -22,7 +22,7 @@ impl ProcessManager {
         Self {
             query_interval: Duration::from_secs(1),
             cache: Arc::new(RwLock::new(CacheEntry {
-                queried_on: Instant::now(),
+                refreshed_on: Instant::now(),
                 items: vec![]
             }))   
         }
@@ -31,7 +31,7 @@ impl ProcessManager {
     pub fn get(&self, args: GetProcessArgs) -> Result<ProcessResult> {
         {
             let guard = self.cache.read().unwrap();
-            if guard.queried_on.elapsed() > self.query_interval {
+            if guard.refreshed_on.elapsed() > self.query_interval {
                 drop(guard);
                 self.refresh_cache()?;
             }
@@ -79,10 +79,14 @@ impl ProcessManager {
         }
     }
 
+    pub fn kill_process(&self, id: u32) -> Result<()> {
+        Ok(())
+    }
+
     pub fn get_by_id(&self, id: u32) -> Result<Option<Process>> {
         {
             let guard = self.cache.read().unwrap();
-            if guard.queried_on.elapsed() > self.query_interval {
+            if guard.refreshed_on.elapsed() > self.query_interval {
                 drop(guard);
                 self.refresh_cache()?;
             }
@@ -119,7 +123,7 @@ impl ProcessManager {
         let mut cache = self.cache.write().unwrap();
         let tree = build_process_tree(processes);
         cache.items = tree;
-        cache.queried_on = Instant::now();
+        cache.refreshed_on = Instant::now();
 
         Ok(())
     }

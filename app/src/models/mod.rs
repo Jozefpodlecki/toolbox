@@ -11,9 +11,34 @@ pub struct LoadResult {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
+pub struct Program {
+    pub name: String,
+    pub path: String
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct Paged<T> {
+    pub items: Vec<T>,
+    pub page: u32,
+    pub page_size: u32
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct GetProcessArgs {
     pub name: Option<String>,
-    pub display: ProcessDisplay
+    pub display: ProcessDisplay,
+    pub page: u32,
+    pub page_size: u32
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct GetProgramArgs {
+    pub name: Option<String>,
+    pub page: u32,
+    pub page_size: u32
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
