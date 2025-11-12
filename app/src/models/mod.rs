@@ -13,7 +13,8 @@ pub struct LoadResult {
 #[serde(rename_all = "camelCase")]
 pub struct Program {
     pub name: String,
-    pub path: String
+    pub path: String,
+    pub icon_path: Option<String>
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -21,7 +22,8 @@ pub struct Program {
 pub struct Paged<T> {
     pub items: Vec<T>,
     pub page: u32,
-    pub page_size: u32
+    pub page_size: u32,
+    pub total: u32
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -48,8 +50,6 @@ pub enum ProcessDisplay {
     Hierarchy
 }
 
-#[derive(Debug, Serialize, Clone)]
-#[serde(tag = "type", content = "data", rename_all = "camelCase")]
 pub enum ProcessResult {
     List(Vec<Process>),
     Hierarchy(Vec<ProcessNode>)

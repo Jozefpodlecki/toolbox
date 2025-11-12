@@ -1,7 +1,7 @@
 use std::{sync::RwLock, time::{Duration, Instant}};
 use anyhow::{bail, Result};
 use widestring::WideCString;
-use winapi::{shared::{minwindef::{DWORD, HKEY}, winerror::ERROR_SUCCESS,}, um::{winnt::KEY_READ, winreg::{RegCloseKey, RegEnumKeyExW, RegGetValueW, RegOpenKeyExW, HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE, RRF_RT_REG_SZ}}};
+use winapi::{shared::{minwindef::{DWORD, HKEY}, winerror::ERROR_SUCCESS,}, um::{shellapi::ExtractIconExW, winnt::KEY_READ, winreg::{RegCloseKey, RegEnumKeyExW, RegGetValueW, RegOpenKeyExW, HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE, RRF_RT_REG_SZ}}};
 
 use crate::models::Program;
 
@@ -125,7 +125,11 @@ impl InstalledProgramsService {
                             .or_else(|| read_string_value(subkey, "DisplayIcon"))
                             .unwrap_or_default();
 
-                    out.push(Program { name: display, path });
+                    let icon_path = read_string_value(subkey, "DisplayIcon")
+                        .or_else(|| read_string_value(subkey, "InstallLocation"))
+                        .and_then(|p| get_icon_path(&p));
+
+                    out.push(Program { name: display, path, icon_path });
                 }
 
                 RegCloseKey(subkey);
@@ -138,6 +142,22 @@ impl InstalledProgramsService {
     }
 }
 
+
+fn get_icon_path(display_icon: &str) -> Option<String> {
+    if display_icon.is_empty() {
+        return None;
+    }
+
+    // Remove index if present: "C:\Path\app.exe,0" -> "C:\Path\app.exe"
+    let path = display_icon.split(',').next()?.trim();
+
+    // Optional: check if file exists
+    if std::path::Path::new(path).exists() {
+        Some(path.to_string())
+    } else {
+        None
+    }
+}
 
 unsafe fn read_string_value(key: HKEY, name: &str) -> Option<String> {
     let wname = widestring::WideCString::from_str(name).ok()?;

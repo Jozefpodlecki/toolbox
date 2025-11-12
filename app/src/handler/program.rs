@@ -20,8 +20,13 @@ pub fn get_programs(programs_service: State<InstalledProgramsService>, args: Get
         page_size
     } = args;
 
-    let all = programs_service.get_all()?;
+    let mut all = programs_service.get_all()?;
 
+    if let Some(name) = name {
+        all = all.into_iter().filter(|pr| pr.name.to_lowercase().contains(&name.to_lowercase())).collect();
+    }
+
+    let total = all.len() as u32;
     let start = (page * page_size) as usize;
     let end = (start + page_size as usize).min(all.len());
 
@@ -31,9 +36,12 @@ pub fn get_programs(programs_service: State<InstalledProgramsService>, args: Get
         Vec::new()
     };
 
+    let page_size = ((all.len() as f32) / (page_size as f32)).ceil() as u32;
+
     Ok(Paged {
         items,
         page,
-        page_count: ((all.len() as f32) / (page_size as f32)).ceil() as u32
+        page_size,
+        total
     })
 }

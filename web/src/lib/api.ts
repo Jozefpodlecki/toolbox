@@ -20,7 +20,15 @@ export interface GetProgramsArgs {
     pageSize: number;
 }
 
-export const getProcesses = (args: GetProcessArgs): Promise<Paged<Process>> => invoke("get_processes", { args });
+export type PagedProcessResult = {
+    type: "hierarchy";
+    data: Paged<Process>;
+} | {
+    type: "list";
+    data: Paged<Process>;
+}
+
+export const getProcesses = (args: GetProcessArgs): Promise<PagedProcessResult> => invoke("get_processes", { args });
 
 export const getPrograms = (args: GetProgramsArgs): Promise<Paged<Program>> => invoke("get_programs", { args });
 
