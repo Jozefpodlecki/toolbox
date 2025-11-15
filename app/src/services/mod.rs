@@ -1,6 +1,8 @@
 mod process;
 mod programs;
+mod memory;
 mod utils;
 
-pub use process::ProcessManager;
-pub use programs::InstalledProgramsService;
+pub use process::*;
+pub use programs::*;
+pub use memory::*;
