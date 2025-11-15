@@ -1,37 +1,29 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { writable } from "svelte/store";
-
-    type UpdateStatus = {
-        type: "idle"
-    } | {
-        type: "checking"
-    } | {
-        type: "downloading"
-        version: string;
-        value: number;
-        total: number;
-    } | {
-        type: "downloaded";
-        version: string;
-    } | {
-        type: "latest";
-        version: string;
-    }
-
-    let updateState = writable<UpdateStatus>({
-        type: "idle"
-    });
+    import { updateStatus } from "$lib/stores";
 
     onMount(() => {
 
     })
 
-    // setTimeout()
-
 </script>
 
-<footer class="bg-amber-950 w-full">
-    <!-- <div class="p-1">Checking updates</div> -->
-    <div class="p-1">Downloading version {}</div>
+<footer class="bg-amber-950 w-full text-white p-2">
+  {#if $updateStatus.type === "idle"}
+    <div>Idle</div>
+  {:else if $updateStatus.type === "checking"}
+    <div>Checking updates...</div>
+  {:else if $updateStatus.type === "failed"}
+    <div>Update failed: {$updateStatus.value}</div>
+  {:else if $updateStatus.type === "newVersion"}
+    <div>New version available: {$updateStatus.value}</div>
+  {:else if $updateStatus.type === "downloading"}
+    <div>
+      Downloading version {$updateStatus.value.version}: {$updateStatus.value.length}/{$updateStatus.value.total} bytes
+    </div>
+  {:else if $updateStatus.type === "downloaded"}
+    <div>Downloaded version {$updateStatus.value}</div>
+  {:else if $updateStatus.type === "latest"}
+    <div>You're on the latest version: {$updateStatus.version}</div>
+  {/if}
 </footer>

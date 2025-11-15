@@ -67,6 +67,10 @@ impl Updatable for AppUpdate {
 
 #[async_trait]
 impl UpdateProvider<AppUpdate> for AppUpdater {
+    fn version(&self) -> String {
+        self.app_handle.package_info().version.to_string()
+    }
+
     fn setup(&self) -> Result<()> {
         let mut guard = self.inner.lock().unwrap();
         let updater = self.app_handle.updater()?;

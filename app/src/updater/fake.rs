@@ -168,6 +168,10 @@ impl Updatable for FakeUpdate {
 
 #[async_trait]
 impl UpdateProvider<FakeUpdate> for FakeUpdater {
+    fn version(&self) -> String {
+        self.app_handle.package_info().version.to_string()
+    }
+
     fn setup(&self) -> Result<()> {
         let option = self.next_option();
 

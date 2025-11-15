@@ -15,6 +15,7 @@ pub trait Updatable: Send + Sync + 'static {
 
 #[async_trait::async_trait]
 pub trait UpdateProvider<U: Updatable>: Send + Sync + 'static {
+    fn version(&self) -> String;
     fn setup(&self) -> Result<()>;
     async fn check(&self) -> Result<Option<U>>;
 }

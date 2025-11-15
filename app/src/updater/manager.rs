@@ -1,4 +1,4 @@
-use std::{marker::PhantomData, sync::{Arc, Mutex}};
+use std::{marker::PhantomData, rc::Rc, sync::{Arc, Mutex}};
 use anyhow::{Context, Result};
 use async_trait::async_trait;
 use log::*;
@@ -51,7 +51,7 @@ where
                     status.set(UpdateStatus::Failed(err.to_string()));
                 }
             }
-            Ok(None) => status.set(UpdateStatus::Latest),
+            Ok(None) => status.set(UpdateStatus::Latest(self.updater.version())),
             Err(err) => status.set(UpdateStatus::Failed(err.to_string())),
         }
     }
@@ -81,15 +81,28 @@ where
         let mut total = 0;
         let version = update.version();
 
-        status.set(UpdateStatus::NewVersion(version.clone()));
+        status.set(UpdateStatus::NewVersion(version));
 
         let downloaded = update
             .download(
                 move |chunk, length| {
                     total += chunk;
-                    status_chunk.set(UpdateStatus::Downloading { total, length });
+                    
+                    let version = match &*status_chunk.get() {
+                        UpdateStatus::NewVersion(version) => version,
+                        UpdateStatus::Downloading { version, .. } => version,
+                        _ => panic!("Invalid state")
+                    }.to_owned();
+
+                    status_chunk.set(UpdateStatus::Downloading { version, total, length });
                 },
                 move || {
+
+                    let version = match &*status_finish.get() {
+                        UpdateStatus::Downloading { version, .. } => version,
+                        _ => panic!("Invalid state")
+                    }.to_owned();
+
                     status_finish.set(UpdateStatus::Downloaded(version));
                 },
             )
@@ -97,8 +110,6 @@ where
 
         if install {
             update.install(downloaded)?;
-            #[cfg(debug_assertions)]
-            status.set(UpdateStatus::Latest);
         }
         else {
             *update_data.lock().unwrap() = Some((update, downloaded));
@@ -108,7 +119,7 @@ where
     }
 
     pub fn get_status(&self) -> UpdateStatus {
-        self.status.get()
+        self.status.get().to_owned()
     }
 
     pub async fn wait(&self) -> Result<()> {

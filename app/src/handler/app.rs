@@ -1,6 +1,6 @@
 use tauri::{command, State};
-
-use crate::{context::AppContext, models::LoadResult, notifier::SetupEndedNotifier};
+use log::*;
+use crate::{context::AppContext, models::*, notifier::SetupEndedNotifier, services::DiskService};
 
 use super::error::*;
 
@@ -16,4 +16,18 @@ pub async fn load(
     };
 
     Ok(result)
+}
+
+#[command]
+pub async fn get_dashboard_stats(disk_service: State<'_, DiskService>) -> Result<DashboardStats> {
+
+    let disks = disk_service.get_disks();
+
+    info!("{:?}", disks);
+
+    let stats = DashboardStats {
+
+    };
+
+    Ok(stats)
 }

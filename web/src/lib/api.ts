@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import type { LoadResult, Paged, Process, Program, UpdateStatus } from "./types";
+import type { DashboardStats, GetProcessArgs, GetProgramsArgs, LoadResult, Paged, PagedProcessResult, Process, Program, UpdateStatus } from "./types";
 import { emit, listen, type UnlistenFn } from "@tauri-apps/api/event";
 
 export const loadApp = (): Promise<LoadResult> => invoke("load");
@@ -8,27 +8,9 @@ export const checkUpdates = (install: boolean): Promise<void> => emit("check-upd
 
 export const onUpdateStatusChange = (handler: (value: UpdateStatus) => void): Promise<UnlistenFn> => listen<UpdateStatus>("on-update", (event) => handler(event.payload));
 
-export interface GetProcessArgs {
-    name: string | null;
-    display: "list" | "hierarchy";
-    page: number;
-    pageSize: number;
-}
-
-export interface GetProgramsArgs {
-    page: number;
-    pageSize: number;
-}
-
-export type PagedProcessResult = {
-    type: "hierarchy";
-    data: Paged<Process>;
-} | {
-    type: "list";
-    data: Paged<Process>;
-}
-
 export const getProcesses = (args: GetProcessArgs): Promise<PagedProcessResult> => invoke("get_processes", { args });
+
+export const getDashboardStats = (): Promise<DashboardStats> => invoke("get_dashboard_stats");
 
 export const getPrograms = (args: GetProgramsArgs): Promise<Paged<Program>> => invoke("get_programs", { args });
 

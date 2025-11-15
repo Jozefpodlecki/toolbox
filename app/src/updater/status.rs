@@ -1,4 +1,4 @@
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, RwLock, RwLockReadGuard};
 use log::debug;
 use tauri::{AppHandle, Emitter};
 use serde::Serialize;
@@ -9,9 +9,13 @@ pub enum UpdateStatus {
     #[default]
     Idle,
     Checking,
-    Latest,
+    Latest(String),
     NewVersion(String),
-    Downloading { total: usize, length: Option<u64> },
+    Downloading {
+        version: String,
+        total: usize,
+        length: Option<u64>
+    },
     Downloaded(String),
     Failed(String)
 }
@@ -19,26 +23,28 @@ pub enum UpdateStatus {
 #[derive(Debug)]
 pub struct UpdateStatusHandle {
     app_handle: AppHandle,
-    status: Arc<Mutex<UpdateStatus>>,
+    status: Arc<RwLock<UpdateStatus>>,
 }
 
-impl UpdateStatusHandle  {
+impl UpdateStatusHandle {
     pub fn new(app_handle: AppHandle) -> Self {
         Self {
             app_handle,
-            status: Arc::new(Mutex::new(UpdateStatus::default())),
+            status: Arc::new(RwLock::new(UpdateStatus::default())),
         }
     }
 
     pub fn set(&self, value: UpdateStatus) {
         debug!("{value:?}");
-        let mut status = self.status.lock().unwrap();
-        *status = value.clone();
+        {
+            let mut status = self.status.write().unwrap();
+            *status = value.clone();
+        }
         self.app_handle.emit("on-update", value).unwrap();
     }
 
-    pub fn get(&self) -> UpdateStatus {
-        self.status.lock().unwrap().clone()
+    pub fn get(&self) -> RwLockReadGuard<'_, UpdateStatus> {
+        self.status.read().unwrap()
     }
 }
 

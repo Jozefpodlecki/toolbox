@@ -11,6 +11,7 @@ export type UpdateStatus = {
 } | {
     type: "downloading";
     value: {
+        version: string;
         total: number;
         length: number;
     }
@@ -18,7 +19,6 @@ export type UpdateStatus = {
     type: "downloaded";
     value: string;
 } | {
-    type: "latest"
-} | {
-    type: "installed";
+    type: "latest";
+    version: string;
 }

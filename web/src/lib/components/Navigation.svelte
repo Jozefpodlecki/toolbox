@@ -4,9 +4,10 @@
     import IconBlocks from "~icons/tabler/blocks";
     import IconPackages from "~icons/tabler/packages"; 
     import IconRefresh from "~icons/lucide/refresh-cw";
+    import { checkUpdates } from "$lib/api";
 
     const onCheck = () => {
-
+        checkUpdates(false)
     }
 
 </script>
