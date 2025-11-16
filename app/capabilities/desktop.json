@@ -6,9 +6,8 @@
   ],
   "windows": [
     "loader",
-    "logs",
     "main",
-    "mini"
+    "dev"
   ],
   "permissions": [
     "core:default",
@@ -21,6 +20,7 @@
     "core:window:allow-close",
     "core:window:allow-set-always-on-top",
     "core:window:allow-get-all-windows",
+    "core:window:allow-minimize",
     "clipboard-manager:allow-write-image",
     "global-shortcut:allow-register",
     "global-shortcut:allow-unregister-all",

@@ -8,9 +8,9 @@
 
 </script>
 
-<footer class="bg-amber-950 w-full text-white p-2">
+<footer class="bg-amber-950 w-full text-white p-2 text-xs">
   {#if $updateStatus.type === "idle"}
-    <div>Idle</div>
+    <div></div>
   {:else if $updateStatus.type === "checking"}
     <div>Checking updates...</div>
   {:else if $updateStatus.type === "failed"}

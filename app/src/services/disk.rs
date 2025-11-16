@@ -1,13 +1,16 @@
 use std::ffi::OsStr;
 use std::os::windows::ffi::OsStrExt;
 use std::ptr;
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc, Mutex, RwLock};
 use std::time::{Duration, Instant};
 use winapi::shared::minwindef::{DWORD, FALSE};
 use winapi::um::fileapi::{GetDiskFreeSpaceExW, GetLogicalDrives, GetVolumeInformationW};
 use winapi::um::winnt::ULARGE_INTEGER;
+use anyhow::Result;
+use log::*;
 
 use crate::models::*;
+use crate::services::WmiService;
 use crate::utils::format_bytes;
 
 #[derive(Debug, Clone)]
@@ -19,6 +22,7 @@ struct CacheEntry {
 pub struct DiskService {
     query_interval: Duration,
     cache: Arc<RwLock<CacheEntry>>,
+    wmi_service: WmiService
 }
 
 impl DiskService {
@@ -31,34 +35,50 @@ impl DiskService {
                 refreshed_on: Instant::now() - query_interval,
                 disks: vec![],
             })),
+            wmi_service: WmiService::new()
         }
     }
 
-    pub fn get_disks(&self) -> Vec<DiskInfo> {
+    pub fn get_disks(&self) -> Result<Vec<DiskInfo>> {
         {
             let guard = self.cache.read().unwrap();
             if guard.refreshed_on.elapsed() < self.query_interval {
-                return guard.disks.clone();
+                return Ok(guard.disks.clone());
             }
         }
 
-        let disks = self.refresh_disks();
+        let disks = self.refresh_disks()?;
         let mut guard = self.cache.write().unwrap();
         guard.disks = disks.clone();
         guard.refreshed_on = Instant::now();
-        disks
+        
+        Ok(disks)
     }
 
-    fn refresh_disks(&self) -> Vec<DiskInfo> {
+    fn refresh_disks(&self) -> Result<Vec<DiskInfo>> {
+        debug!("refresh_disks");
+
         let drives = self.drives();
-        drives
+        
+        let logical_to_wmi = self.wmi_service.map_logical_to_physical()?;
+        
+        info!("{logical_to_wmi:?}");
+
+        let result = drives
             .into_iter()
-            .map(|d| DiskInfo {
-                model: None,
-                disk_type: None,
-                partitions: Self::partitions(&d),
+            .map(|d| {
+                let partitions = Self::partitions(&d);
+                let drive_key = d.trim_end_matches('\\');
+                let wmi_disk = logical_to_wmi.get(drive_key);
+                DiskInfo {
+                    model: wmi_disk.and_then(|w| w.model.clone()),
+                    disk_type: wmi_disk.and_then(|w| w.media_type.clone()),
+                    partitions,
+                }
             })
-            .collect()
+            .collect();
+
+        Ok(result)
     }
 
     fn drives(&self) -> Vec<String> {

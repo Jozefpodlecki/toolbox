@@ -38,6 +38,8 @@ async fn main() -> Result<()> {
         .manage(InstalledProgramsService::new())
         .manage(MemoryService::new())
         .manage(DiskService::new())
+        .manage(LoadedDriverService::new())
+        .manage(InstalledDriverService::new())
         .plugin(tauri_plugin_log::Builder::new()
             .level_for("tao", LevelFilter::Error)
             .target(tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::Folder { 

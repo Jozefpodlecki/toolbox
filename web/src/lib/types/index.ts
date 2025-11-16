@@ -2,30 +2,42 @@
 export interface DiskPartition {
     name: string;
     fsType: string;
-    total: string;
+    total: number;
+    totalFormatted: string;
     used: string;
+    usedFormatted: string;
     free: string;
+    freeFormatted: string;
     usagePercent?: number;
 };
 
 export type DiskInfo = {
     model?: string;
-    type?: "HDD" | "SSD" | string;
+    diskType?: string;
     partitions: DiskPartition[];
 };
 
 export interface MemoryInfo {
-    available: string;
-    committed: string;
-    cached: string;
-    paged: string;
-    nonPaged: string;
+    totalPhys: number;
+    totalPhysFormatted: string;
+    availPhys: number;
+    availPhysFormatted: string;
+    totalPagefile: number;
+    totalPagefileFormatted: string;
+    availPagefile: number;
+    availPagefileFormatted: string;
+    totalVirtual: number;
+    totalVirtualFormatted: string;
+    availVirtual: number;
+    availVirtualFormatted: string;
+    memoryLoad: number; 
 }
+
 export interface DashboardStats {
     programsCount: number;
     activeProcesses: number;
     memory: MemoryInfo;
-    disk: DiskInfo[];
+    disks: DiskInfo[];
 }
 
 export interface GetProcessArgs {

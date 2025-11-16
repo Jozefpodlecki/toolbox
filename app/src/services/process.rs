@@ -19,13 +19,28 @@ pub struct CacheEntry {
 
 impl ProcessManager {
     pub fn new() -> Self {
+        let query_interval = Duration::from_secs(1);
+        
         Self {
-            query_interval: Duration::from_secs(1),
+            query_interval,
             cache: Arc::new(RwLock::new(CacheEntry {
-                refreshed_on: Instant::now(),
+                refreshed_on: Instant::now() - query_interval,
                 items: vec![]
             }))   
         }
+    }
+
+    pub fn get_count(&self) -> Result<u32> {
+        {
+            let guard = self.cache.read().unwrap();
+            if guard.refreshed_on.elapsed() > self.query_interval {
+                drop(guard);
+                self.refresh_cache()?;
+            }
+        }
+
+        let guard = self.cache.read().unwrap();
+        Ok(guard.items.len() as u32)
     }
 
     pub fn get(&self, args: GetProcessArgs) -> Result<ProcessResult> {

@@ -6,16 +6,7 @@ use std::{
 use winapi::um::sysinfoapi::{GlobalMemoryStatusEx, MEMORYSTATUSEX};
 use anyhow::{bail, Result};
 
-#[derive(Debug, Clone)]
-pub struct MemoryStats {
-    pub total_phys: u64,
-    pub avail_phys: u64,
-    pub total_pagefile: u64,
-    pub avail_pagefile: u64,
-    pub total_virtual: u64,
-    pub avail_virtual: u64,
-    pub memory_load: u32,
-}
+use crate::{models::MemoryStats, utils::format_bytes};
 
 #[derive(Debug)]
 struct CacheEntry {
@@ -30,15 +21,7 @@ pub struct MemoryService {
 
 impl MemoryService {
     pub fn new() -> Self {
-        let initial_stats = Self::fetch_memory_stats().unwrap_or(MemoryStats {
-            total_phys: 0,
-            avail_phys: 0,
-            total_pagefile: 0,
-            avail_pagefile: 0,
-            total_virtual: 0,
-            avail_virtual: 0,
-            memory_load: 0,
-        });
+        let initial_stats = Self::fetch_memory_stats().unwrap_or(MemoryStats::default());
 
         Self {
             query_interval: Duration::from_secs(1),
@@ -81,11 +64,17 @@ impl MemoryService {
 
             Ok(MemoryStats {
                 total_phys: mem_info.ullTotalPhys,
+                total_phys_formatted: format_bytes(mem_info.ullTotalPhys),
                 avail_phys: mem_info.ullAvailPhys,
+                avail_phys_formatted: format_bytes(mem_info.ullTotalPhys),
                 total_pagefile: mem_info.ullTotalPageFile,
+                total_pagefile_formatted: format_bytes(mem_info.ullTotalPageFile),
                 avail_pagefile: mem_info.ullAvailPageFile,
+                avail_pagefile_formatted: format_bytes(mem_info.ullAvailPageFile),
                 total_virtual: mem_info.ullTotalVirtual,
+                total_virtual_formatted: format_bytes(mem_info.ullTotalVirtual),
                 avail_virtual: mem_info.ullAvailVirtual,
+                avail_virtual_formatted: format_bytes(mem_info.ullAvailVirtual),
                 memory_load: mem_info.dwMemoryLoad,
             })
         }

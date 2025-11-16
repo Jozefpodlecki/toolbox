@@ -69,6 +69,24 @@
         "focus": false,
         "useHttpsScheme": true,
         "backgroundColor": "000000"
+      },
+       {
+        "label": "dev",
+        "title": "Dev",
+        "userAgent": "Dev",
+        "url": "/dev",
+        "fullscreen": false,
+        "width": 100,
+        "height": 100,
+        "resizable": true,
+        "shadow": false,
+        "decorations": false,
+        "transparent": false,
+        "alwaysOnTop": true,
+        "visible": false,
+        "focus": false,
+        "useHttpsScheme": true,
+        "backgroundColor": "000000"
       }
     ],
     "security": {

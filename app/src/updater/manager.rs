@@ -52,7 +52,16 @@ where
                 }
             }
             Ok(None) => status.set(UpdateStatus::Latest(self.updater.version())),
-            Err(err) => status.set(UpdateStatus::Failed(err.to_string())),
+            Err(err) => {
+                let err_str = err.to_string();
+
+                let err_str = match err_str.as_str() {
+                    "Update failed: Could not fetch a valid release JSON from the remote" => "Update failed: Could not get metadata".to_string(),
+                    _ => err_str
+                };
+
+                status.set(UpdateStatus::Failed(err_str))
+            },
         }
     }
 

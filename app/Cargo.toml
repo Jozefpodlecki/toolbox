@@ -48,7 +48,6 @@ sha256 = "1.6.0"
 tar = "0.4.44"
 netstat = "0.7.0"
 ipnetwork = "=0.20.0"
-libp2p = { version = "0.56.0", features = ["identify", "macros", "noise", "ping", "rendezvous", "tcp", "tokio", "yamux"] }
 etherparse = "0.19.0"
 axum = { version = "0.8.6" }
 oauth2 = "4.3"
@@ -57,6 +56,9 @@ rand = "0.9.2"
 dirs = "6.0.0"
 winapi = { version = "0.3.9", features = ["everything"] }
 widestring = "1.2.1"
+wmi = { version = "0.18.0", features = ["chrono"] }
+base64 = "0.22.1"
+data-url = "0.3.2"
 # winapi = { version = "0.3.9", features = [
 #   "tlhelp32",           # CreateToolhelp32Snapshot, PROCESSENTRY32
 #   "processthreadsapi",  # OpenProcess, GetCurrentProcess, etc.

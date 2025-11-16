@@ -11,8 +11,27 @@ pub struct LoadResult {
 
 #[derive(Debug, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
+pub struct LoadedDriver {
+    pub name: String,
+    pub path: String,
+    pub base: usize,
+}
+
+#[derive(Debug, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct DriverInfo {
+    pub inf: String,
+    pub provider: String,
+    pub driver_store: String,
+}
+
+#[derive(Debug, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct DashboardStats {
-    
+    pub programs_count: u32,
+    pub active_processes: u32,
+    pub memory: MemoryStats,
+    pub disks: Vec<DiskInfo>
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -87,6 +106,7 @@ pub struct ProcessNode {
 }
 
 #[derive(Debug, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct DiskPartition {
     pub name: String,
     pub fs_type: Option<String>,
@@ -98,7 +118,26 @@ pub struct DiskPartition {
     pub used_formatted: String,
 }
 
+#[derive(Debug, Default, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct MemoryStats {
+    pub total_phys: u64,
+    pub total_phys_formatted: String,
+    pub avail_phys: u64,
+    pub avail_phys_formatted: String,
+    pub total_pagefile: u64,
+    pub total_pagefile_formatted: String,
+    pub avail_pagefile: u64,
+    pub avail_pagefile_formatted: String,
+    pub total_virtual: u64,
+    pub total_virtual_formatted: String,
+    pub avail_virtual: u64,
+    pub avail_virtual_formatted: String,
+    pub memory_load: u32,
+}
+
 #[derive(Debug, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct DiskInfo {
     pub model: Option<String>,
     pub disk_type: Option<String>, // HDD / SSD
