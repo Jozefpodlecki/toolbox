@@ -6,6 +6,16 @@ use std::time::{Duration, Instant};
 use wmi::WMIConnection;
 
 #[derive(Debug, Deserialize, Clone)]
+pub struct CpuInfo {
+    #[serde(rename = "Name")]
+    pub name: String,
+    #[serde(rename = "Manufacturer")]
+    pub manufacturer: String,
+    #[serde(rename = "MaxClockSpeed")]
+    pub max_clock_speed: u32,
+}
+
+#[derive(Debug, Deserialize, Clone)]
 pub struct WmiDisk {
     #[serde(rename = "DeviceID")]
     pub device_id: String,
@@ -48,6 +58,19 @@ impl WmiService {
             cache_ttl: Duration::from_secs(3600),
         }
     }
+
+    fn get_cpu_info(&self) -> Result<CpuInfo> {
+        let connection = WMIConnection::new()?;
+
+        let processors: Vec<CpuInfo> = connection.raw_query("SELECT Name, Manufacturer, MaxClockSpeed FROM Win32_Processor")?;
+
+        let info = processors
+            .into_iter()
+            .next()
+            .unwrap();
+
+        Ok(info)
+    } 
 
     fn fetch_disks() -> Result<Vec<WmiDisk>> {
         let connection = WMIConnection::new()?;

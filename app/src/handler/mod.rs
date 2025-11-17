@@ -5,6 +5,7 @@ mod program;
 mod driver;
 mod memory;
 mod dev;
+mod handles;
 mod error;
 
 pub use handlers::*;

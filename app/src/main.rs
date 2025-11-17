@@ -40,8 +40,14 @@ async fn main() -> Result<()> {
         .manage(DiskService::new())
         .manage(LoadedDriverService::new())
         .manage(InstalledDriverService::new())
+        .manage(HandleManager::new())
         .plugin(tauri_plugin_log::Builder::new()
+            .level_for("tauri_plugin_updater", LevelFilter::Error)
+            .level_for("updater", LevelFilter::Error)
+            .level_for("reqwest", LevelFilter::Error)
             .level_for("tao", LevelFilter::Error)
+            .level_for("wmi", LevelFilter::Error)
+            .level_for("hyper_util", LevelFilter::Error)
             .target(tauri_plugin_log::Target::new(tauri_plugin_log::TargetKind::Folder { 
                 path: current_dir,
                 file_name: Some("logs".to_string())

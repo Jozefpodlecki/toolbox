@@ -30,6 +30,8 @@ export const getLoadedDrivers = (): Promise<any> => invoke("get_loaded_drivers")
 
 export const getMemoryInfo = (): Promise<any> => invoke("get_memory_info");
 
+export const getSystemHandles = (): Promise<any> => invoke("get_system_handles");
+
 export const saveScreenshot = (dataUrl: string): Promise<never> => invoke("save_screenshot", { dataUrl });
 
 export const requestScreenshot = (): Promise<void> => emit("on-screenshot");

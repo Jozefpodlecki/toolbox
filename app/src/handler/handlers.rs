@@ -8,6 +8,7 @@ pub fn generate_handlers() -> Box<dyn Fn(Invoke) -> bool + Send + Sync> {
         dev::save_screenshot,
         app::load,
         app::get_dashboard_stats,
+        handles::get_system_handles,
         memory::get_memory_info,
         driver::get_installed_drivers,
         driver::get_loaded_drivers,

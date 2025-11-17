@@ -39,8 +39,11 @@ where
         status.set(UpdateStatus::Checking);
         
         if let Err(err) = self.updater.setup() {
+            let err_str = err.to_string();
+
             error!("An error ocurrest whilst running updater: {}", err);
-            let update_status = UpdateStatus::Failed(err.to_string());
+
+            let update_status = UpdateStatus::Failed(err_str);
             status.set(update_status);
             return;
         }
@@ -48,6 +51,7 @@ where
         match self.updater.check().await {
             Ok(Some(update)) => {
                 if let Err(err) = Self::on_update(update, status.clone(), install, self.update_data.clone()).await {
+
                     status.set(UpdateStatus::Failed(err.to_string()));
                 }
             }
@@ -56,7 +60,7 @@ where
                 let err_str = err.to_string();
 
                 let err_str = match err_str.as_str() {
-                    "Update failed: Could not fetch a valid release JSON from the remote" => "Update failed: Could not get metadata".to_string(),
+                    "Could not fetch a valid release JSON from the remote" => "Could not get metadata".to_string(),
                     _ => err_str
                 };
 

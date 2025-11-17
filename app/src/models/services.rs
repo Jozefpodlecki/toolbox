@@ -120,6 +120,16 @@ pub struct DiskPartition {
 
 #[derive(Debug, Default, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
+pub struct HandleInfo {
+    pub process_id: u32,
+    pub process_name: String,
+    pub handle: u16,
+    pub object_type: u8,
+    pub granted_access: u32,
+}
+
+#[derive(Debug, Default, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct MemoryStats {
     pub total_phys: u64,
     pub total_phys_formatted: String,
