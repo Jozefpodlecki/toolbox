@@ -70,6 +70,18 @@ pub struct GetProgramArgs {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
+pub struct GetNetTableArgs {
+    pub process_name: Option<String>,
+    pub local_port: Option<u16>,
+    pub remote_port: Option<u16>,
+    pub local_ip_addr: Option<String>,
+    pub remote_ip_addr: Option<String>,
+    #[serde(flatten)]
+    pub page: PageArgs
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct PageArgs {
     pub page: u32,
     pub page_size: u32
@@ -123,17 +135,6 @@ pub struct DiskPartition {
     pub free_formatted: String,
     pub used: u64,
     pub used_formatted: String,
-}
-
-#[derive(Debug, Serialize, Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct TcpTableEntry {
-    pub process_id: u32,
-    pub process_name: String,
-    pub local_port: u16,
-    pub local_ip_address: Ipv4Addr,
-    pub remote_port: u16,
-    pub remote_ip_address: Ipv4Addr,
 }
 
 #[derive(Debug, Default, Serialize, Clone)]

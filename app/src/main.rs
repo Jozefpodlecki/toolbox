@@ -42,7 +42,7 @@ async fn main() -> Result<()> {
         .manage(LoadedDriverService::new())
         .manage(InstalledDriverService::new())
         .manage(HandleManager::new(process_manager.clone()))
-        .manage(TcpTableService::new(process_manager))
+        .manage(NetTableService::new(process_manager))
         .plugin(tauri_plugin_log::Builder::new()
             .level_for("tauri_plugin_updater", LevelFilter::Error)
             .level_for("updater", LevelFilter::Error)
