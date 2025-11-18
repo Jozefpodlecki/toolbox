@@ -3,7 +3,7 @@
     import { onMount, untrack } from "svelte";
     import Programs from "./Programs.svelte";
     import type { Paged, Program } from "$lib/types";
-    import Pagination from "./Pagination.svelte";
+    import Pagination from "../../../lib/components/Pagination.svelte";
     import IconPackages from "~icons/tabler/packages"; 
 
     interface State {
@@ -18,6 +18,7 @@
         result: {
             items: [],
             page: 0,
+            pageSize: 10,
             total: 0
         }
     });

@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{net::Ipv4Addr, path::PathBuf};
 
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -64,6 +64,13 @@ pub struct GetProcessArgs {
 #[serde(rename_all = "camelCase")]
 pub struct GetProgramArgs {
     pub name: Option<String>,
+    #[serde(flatten)]
+    pub page: PageArgs
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct PageArgs {
     pub page: u32,
     pub page_size: u32
 }
@@ -118,13 +125,24 @@ pub struct DiskPartition {
     pub used_formatted: String,
 }
 
+#[derive(Debug, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct TcpTableEntry {
+    pub process_id: u32,
+    pub process_name: String,
+    pub local_port: u16,
+    pub local_ip_address: Ipv4Addr,
+    pub remote_port: u16,
+    pub remote_ip_address: Ipv4Addr,
+}
+
 #[derive(Debug, Default, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct HandleInfo {
     pub process_id: u32,
     pub process_name: String,
-    pub handle: u16,
-    pub object_type: u8,
+    pub handle: u32,
+    pub object_type: u16,
     pub granted_access: u32,
 }
 

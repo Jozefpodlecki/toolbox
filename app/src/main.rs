@@ -30,17 +30,19 @@ async fn main() -> Result<()> {
        
     let app_path = std::env::current_exe()?;
     let current_dir = app_path.parent().unwrap().to_owned();
+    let process_manager = ProcessManager::new();
 
     tauri::Builder::default()
         .manage(AppContext::new())
         .manage(SetupEndedNotifier::new())
-        .manage(ProcessManager::new())
+        .manage(process_manager.clone())
         .manage(InstalledProgramsService::new())
         .manage(MemoryService::new())
         .manage(DiskService::new())
         .manage(LoadedDriverService::new())
         .manage(InstalledDriverService::new())
-        .manage(HandleManager::new())
+        .manage(HandleManager::new(process_manager.clone()))
+        .manage(TcpTableService::new(process_manager))
         .plugin(tauri_plugin_log::Builder::new()
             .level_for("tauri_plugin_updater", LevelFilter::Error)
             .level_for("updater", LevelFilter::Error)

@@ -1,6 +1,6 @@
-use std::{sync::{Arc, RwLock}, time::{Duration, Instant}};
+use std::{collections::HashMap, sync::{Arc, RwLock}, time::{Duration, Instant}};
 
-use winapi::{shared::minwindef::FALSE, um::{handleapi::{CloseHandle, INVALID_HANDLE_VALUE}, processthreadsapi::OpenProcess, tlhelp32::{CreateToolhelp32Snapshot, Process32FirstW, Process32NextW, PROCESSENTRY32W, TH32CS_SNAPPROCESS}, winnt::{PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_VM_READ}}};
+use winapi::{shared::minwindef::FALSE, um::{handleapi::{CloseHandle, INVALID_HANDLE_VALUE}, processthreadsapi::{OpenProcess, TerminateProcess}, tlhelp32::{CreateToolhelp32Snapshot, Process32FirstW, Process32NextW, PROCESSENTRY32W, TH32CS_SNAPPROCESS}, winnt::{PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_TERMINATE, PROCESS_VM_READ}}};
 
 use log::*;
 use crate::{models::*, services::utils::*, utils::widestr_to_string};
@@ -14,7 +14,8 @@ pub struct ProcessManager {
 #[derive(Debug)]
 pub struct CacheEntry {
     refreshed_on: Instant,
-    items: Vec<ProcessNode>
+    items: Vec<ProcessNode>,
+    map: HashMap<u32, String>
 }
 
 impl ProcessManager {
@@ -25,7 +26,8 @@ impl ProcessManager {
             query_interval,
             cache: Arc::new(RwLock::new(CacheEntry {
                 refreshed_on: Instant::now() - query_interval,
-                items: vec![]
+                items: vec![],
+                map: HashMap::new()
             }))   
         }
     }
@@ -41,6 +43,20 @@ impl ProcessManager {
 
         let guard = self.cache.read().unwrap();
         Ok(guard.items.len() as u32)
+    }
+
+    pub fn get_id_name_map(&self) -> Result<HashMap<u32, String>> {
+        {
+            let guard = self.cache.read().unwrap();
+            if guard.refreshed_on.elapsed() > self.query_interval {
+                drop(guard);
+                self.refresh_cache()?;
+            }
+        }
+
+        let guard = self.cache.read().unwrap();
+
+        Ok(guard.map.clone())
     }
 
     pub fn get(&self, args: GetProcessArgs) -> Result<ProcessResult> {
@@ -95,6 +111,22 @@ impl ProcessManager {
     }
 
     pub fn kill_process(&self, id: u32) -> Result<()> {
+
+        unsafe {
+            let handle = OpenProcess(PROCESS_TERMINATE, 0, id);
+
+            if handle.is_null() {
+                return Err(std::io::Error::last_os_error().into());
+            }
+
+            if TerminateProcess(handle, 1) == 0 {
+                CloseHandle(handle);
+                return Err(std::io::Error::last_os_error().into());
+            }
+
+            CloseHandle(handle);
+        }
+
         Ok(())
     }
 
@@ -136,6 +168,7 @@ impl ProcessManager {
         let processes = unsafe { self.enumerate_processes()? };
 
         let mut cache = self.cache.write().unwrap();
+        cache.map = processes.iter().map(|pr| (pr.id, pr.name.to_owned())).collect();
         let tree = build_process_tree(processes);
         cache.items = tree;
         cache.refreshed_on = Instant::now();
@@ -198,6 +231,15 @@ impl ProcessManager {
             cpu_time_ms: cpu_ms,
             start_time_filetime,
             icon_path: icon,
+        }
+    }
+}
+
+impl Clone for ProcessManager {
+    fn clone(&self) -> Self {
+        Self {
+            query_interval: self.query_interval.clone(),
+            cache: self.cache.clone()
         }
     }
 }

@@ -1,5 +1,5 @@
 use tauri::{command, State};
-use crate::{models::{GetProcessArgs, GetProgramArgs, Paged, Process, ProcessResult, Program}, services::InstalledProgramsService};
+use crate::{models::{GetProcessArgs, GetProgramArgs, PageArgs, Paged, Process, ProcessResult, Program}, services::InstalledProgramsService};
 
 use super::error::*;
 
@@ -16,8 +16,10 @@ pub fn get_programs(programs_service: State<InstalledProgramsService>, args: Get
   
     let GetProgramArgs {
         name,
-        page,
-        page_size
+        page: PageArgs {
+            page,
+            page_size
+        },
     } = args;
 
     let mut all = programs_service.get_all()?;

@@ -7,6 +7,7 @@ mod loaded_driver;
 mod installed_driver;
 mod save_screenshot;
 mod handle;
+mod tcp_table;
 mod utils;
 
 pub use process::*;
@@ -18,3 +19,4 @@ pub use loaded_driver::*;
 pub use installed_driver::*;
 pub use save_screenshot::*;
 pub use handle::*;
+pub use tcp_table::*;

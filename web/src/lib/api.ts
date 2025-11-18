@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import type { DashboardStats, GetProcessArgs, GetProgramsArgs, LoadResult, Paged, PagedProcessResult, Process, Program, UpdateStatus } from "./types";
+import type { DashboardStats, GetProcessArgs, GetProgramsArgs, LoadResult, PageArgs, Paged, PagedProcessResult, Process, Program, TcpTableEntry, UpdateStatus } from "./types";
 import { emit, listen, type UnlistenFn } from "@tauri-apps/api/event";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 
@@ -31,6 +31,8 @@ export const getLoadedDrivers = (): Promise<any> => invoke("get_loaded_drivers")
 export const getMemoryInfo = (): Promise<any> => invoke("get_memory_info");
 
 export const getSystemHandles = (): Promise<any> => invoke("get_system_handles");
+
+export const getTcpTable = (args: PageArgs): Promise<Paged<TcpTableEntry>> => invoke("get_tcp_table", { args });
 
 export const saveScreenshot = (dataUrl: string): Promise<never> => invoke("save_screenshot", { dataUrl });
 
