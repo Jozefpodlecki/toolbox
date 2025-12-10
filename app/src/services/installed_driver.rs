@@ -1,11 +1,17 @@
-use std::{ptr, sync::{Arc, RwLock}, time::{Duration, Instant}};
+use std::{
+    sync::{Arc, RwLock},
+    time::{Duration, Instant},
+};
 use anyhow::{bail, Result};
+use winapi::{
+    shared::minwindef::{DWORD, FALSE, HKEY, MAX_PATH},
+    um::{
+        handleapi::INVALID_HANDLE_VALUE, setupapi::*, winnt::KEY_READ, winreg::*
+    },
+};
 use widestring::WideCString;
-use winapi::{shared::{minwindef::*, winerror::ERROR_SUCCESS}, um::winnt::KEY_READ};
-use winapi::um::winreg::*;
-use log::*;
 
-use crate::models::DriverInfo;
+use crate::{models::DriverInfo, services::device_class::DeviceClassService};
 
 #[derive(Debug)]
 struct CacheEntry {
@@ -14,6 +20,7 @@ struct CacheEntry {
 }
 
 pub struct InstalledDriverService {
+    device_class: DeviceClassService,
     query_interval: Duration,
     cache: Arc<RwLock<CacheEntry>>,
 }
@@ -21,6 +28,7 @@ pub struct InstalledDriverService {
 impl InstalledDriverService {
     pub fn new() -> Self {
         Self {
+            device_class: DeviceClassService::new(),
             query_interval: Duration::from_secs(30),
             cache: Arc::new(RwLock::new(CacheEntry {
                 refreshed_on: Instant::now(),
@@ -52,97 +60,90 @@ impl InstalledDriverService {
         let mut drivers = Vec::new();
 
         unsafe {
-            let key_path = WideCString::from_str("SYSTEM\\CurrentControlSet\\Control\\DriverDatabase\\DriverPackages")?;
-            let mut hkey: HKEY = ptr::null_mut();
+            let device_info_set = SetupDiGetClassDevsW(
+                std::ptr::null(),
+                std::ptr::null(),
+                std::ptr::null_mut(),
+                DIGCF_PRESENT | DIGCF_ALLCLASSES,
+            );
 
-            if RegOpenKeyExW(
-                HKEY_LOCAL_MACHINE,
-                key_path.as_ptr(),
-                0,
-                KEY_READ,
-                &mut hkey,
-            ) != ERROR_SUCCESS as i32 {
-                bail!("Failed to open DriverDatabase registry");
+            if device_info_set == INVALID_HANDLE_VALUE {
+                bail!("Failed to get device info set");
             }
 
             let mut index = 0;
-
             loop {
-                let mut name_buf = [0u16; 300];
-                let mut name_len = name_buf.len() as DWORD;
+                let mut device_info_data = std::mem::zeroed::<SP_DEVINFO_DATA>();
+                device_info_data.cbSize = std::mem::size_of::<SP_DEVINFO_DATA>() as DWORD;
 
-                let result = RegEnumKeyExW(
-                    hkey,
-                    index,
-                    name_buf.as_mut_ptr(),
-                    &mut name_len,
-                    ptr::null_mut(),
-                    ptr::null_mut(),
-                    ptr::null_mut(),
-                    ptr::null_mut(),
-                );
-
-                if result != ERROR_SUCCESS as i32 {
-                    break; // no more items
+                if SetupDiEnumDeviceInfo(device_info_set, index, &mut device_info_data) == FALSE {
+                    break;
                 }
 
-                index += 1;
+                let inf_full = get_device_property(&device_info_set, &mut device_info_data, SPDRP_DRIVER)
+                    .unwrap_or_default();
 
-                let key_name = WideCString::from_vec_unchecked(
-                    [&name_buf[..name_len as usize], &[0]].concat()
-                );
+                let (class_guid, instance_id) = if let Some(pos) = inf_full.find('\\') {
+                    (
+                        inf_full[..pos].to_string(),
+                        inf_full[pos + 1..].to_string(),
+                    )
+                } else {
+                    (inf_full.clone(), String::new())
+                };
 
-                let mut pkg_key: HKEY = ptr::null_mut();
+                let class_name = self.device_class.get_class_name(&class_guid).cloned().unwrap_or_default();
 
-                if RegOpenKeyExW(
-                    hkey,
-                    key_name.as_ptr(),
-                    0,
-                    KEY_READ,
-                    &mut pkg_key
-                ) != ERROR_SUCCESS as i32 {
-                    continue;
-                }
+                let provider = get_device_property(&device_info_set, &mut device_info_data, SPDRP_MFG)
+                    .unwrap_or_default();
 
-                let inf = read_string(pkg_key, "InfName").unwrap_or_default();
-                let provider = read_string(pkg_key, "Provider").unwrap_or_default();
-                let store_path = read_string(pkg_key, "DriverStorePath").unwrap_or_default();
+                let description = get_device_property(&device_info_set, &mut device_info_data, SPDRP_DEVICEDESC)
+                    .unwrap_or_default();
+
+                let driver_store = String::new();
 
                 drivers.push(DriverInfo {
-                    inf,
+                    class_guid,
+                    class_name,
+                    instance_id,
+                    inf: inf_full,
+                    description,
                     provider,
-                    driver_store: store_path,
+                    driver_store,
                 });
 
-                RegCloseKey(pkg_key);
+                index += 1;
             }
 
-            RegCloseKey(hkey);
+            SetupDiDestroyDeviceInfoList(device_info_set);
         }
 
         Ok(drivers)
     }
 }
 
-unsafe fn read_string(key: HKEY, name: &str) -> Option<String> {
-    let name = WideCString::from_str(name).ok()?;
-    let mut buf = [0u16; 512];
-    let mut size = (buf.len() * 2) as DWORD;
+unsafe fn get_device_property(
+    device_info_set: &HDEVINFO,
+    device_info_data: &mut SP_DEVINFO_DATA,
+    property: DWORD,
+) -> Option<String> {
+    let mut buf: [u16; MAX_PATH] = [0; MAX_PATH];
+    let mut required_size: DWORD = 0;
 
-    let status = RegGetValueW(
-        key,
-        ptr::null(),
-        name.as_ptr(),
-        RRF_RT_REG_SZ,
-        ptr::null_mut(),
-        buf.as_mut_ptr() as *mut _,
-        &mut size,
+    let success = SetupDiGetDeviceRegistryPropertyW(
+        *device_info_set,
+        device_info_data,
+        property,
+        std::ptr::null_mut(),
+        buf.as_mut_ptr() as *mut u8,
+        (buf.len() * 2) as DWORD,
+        &mut required_size,
     );
 
-    if status != ERROR_SUCCESS as i32 {
+    if success == FALSE {
         return None;
     }
 
-    let len = size as usize / 2;
-    Some(String::from_utf16_lossy(&buf[..len - 1]))
+    let len = buf.iter().position(|&c| c == 0).unwrap_or(buf.len());
+    Some(String::from_utf16_lossy(&buf[..len]))
 }

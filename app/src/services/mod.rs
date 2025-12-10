@@ -8,6 +8,7 @@ mod installed_driver;
 mod save_screenshot;
 mod handle;
 mod net_table;
+mod device_class;
 mod utils;
 
 pub use process::*;

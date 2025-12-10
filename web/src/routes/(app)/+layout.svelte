@@ -39,7 +39,7 @@
     <div class="flex-1 flex flex-col">
         <Header/>
 
-        <main class="flex-1 bg-gray-800 overflow-auto" data-tauri-drag-region>
+        <main class="flex-1 bg-gray-800 overflow-auto">
             {@render children?.()}
         </main>
 

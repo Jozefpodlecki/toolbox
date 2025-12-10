@@ -21,7 +21,11 @@ pub struct LoadedDriver {
 #[derive(Debug, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct DriverInfo {
+    pub class_guid: String,
+    pub class_name: String,
+    pub instance_id: String,
     pub inf: String,
+    pub description: String,
     pub provider: String,
     pub driver_store: String,
 }

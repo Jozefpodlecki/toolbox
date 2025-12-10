@@ -148,10 +148,8 @@ fn get_icon_path(display_icon: &str) -> Option<String> {
         return None;
     }
 
-    // Remove index if present: "C:\Path\app.exe,0" -> "C:\Path\app.exe"
     let path = display_icon.split(',').next()?.trim();
 
-    // Optional: check if file exists
     if std::path::Path::new(path).exists() {
         Some(path.to_string())
     } else {
