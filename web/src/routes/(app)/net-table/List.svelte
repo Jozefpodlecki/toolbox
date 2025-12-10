@@ -1,21 +1,25 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { getTcpTable } from "$lib/api";
+    import { getNetTable } from "$lib/api";
     import IconNetwork from "~icons/tabler/network";
-    import type { PageArgs, Paged, TcpTableEntry } from "$lib/types";
+    import type { GetNetTableArgs, Paged, NetTableEntry } from "$lib/types";
     import Pagination from "$lib/components/Pagination.svelte";
 
-    interface LoadedState extends PageArgs {
-        pageSize: number;
-        page: number;
-        result: Paged<TcpTableEntry>;
+    interface LoadedState extends GetNetTableArgs {
+        result: Paged<NetTableEntry>;
     }
 
     type State =
-    | ({ isLoading: true } & PageArgs)
+    | ({ isLoading: true } & GetNetTableArgs)
     | ({ isLoading: false } & LoadedState);
 
     let pageState = $state<State>({
+        localIpAddr: null,
+        localPort: null,
+        processName: null,
+        remotePort: null,
+        remoteIpAddr: null,
+        protocols: ["tcp", "udp"],
         pageSize: 10,
         page: 0,
         isLoading: true
@@ -26,11 +30,11 @@
     })
 
     async function onLoad() {
-        const args: PageArgs = {
+        const args: GetNetTableArgs = {
             ...pageState
         };
 
-       const result = await getTcpTable(args);
+       const result = await getNetTable(args);
 
         pageState = {
             ...pageState,
@@ -42,11 +46,12 @@
 </script>
 
 {#if pageState.isLoading}
-  <div class="p-6 text-center text-gray-400">Loading tcp table...</div>
+  <div class="p-6 text-center text-gray-400">Loading net table...</div>
 {:else}
     <div class="flex flex-col h-full items-center">
         <header class="p-1 flex gap-2 items-center">
-            Tcp Table <IconNetwork/>
+            Net Table <IconNetwork/>
+            <input type="text" class="bg-transparent">
         </header>
         <main class="flex-1 w-full overflow-auto">
             {#each pageState.result.items as item}

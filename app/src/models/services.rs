@@ -1,5 +1,6 @@
-use std::{net::Ipv4Addr, path::PathBuf};
+use std::{net::{IpAddr, Ipv4Addr}, path::PathBuf};
 
+use hashbrown::HashSet;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -68,14 +69,22 @@ pub struct GetProgramArgs {
     pub page: PageArgs
 }
 
+#[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Hash, Clone)]
+#[serde(rename_all = "lowercase")]
+pub enum TransportProtocol {
+    Tcp,
+    Udp,
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct GetNetTableArgs {
+    pub protocols: HashSet<TransportProtocol>,
     pub process_name: Option<String>,
     pub local_port: Option<u16>,
     pub remote_port: Option<u16>,
-    pub local_ip_addr: Option<String>,
-    pub remote_ip_addr: Option<String>,
+    pub local_ip_addr: Option<IpAddr>,
+    pub remote_ip_addr: Option<IpAddr>,
     #[serde(flatten)]
     pub page: PageArgs
 }

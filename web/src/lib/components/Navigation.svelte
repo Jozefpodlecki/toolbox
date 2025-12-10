@@ -18,12 +18,12 @@
 </script>
 
 <nav class="flex flex-col gap-1 [&>[data-selected=true]>svg]:text-gray-500">
-    <Item href="/"><IconHome/></Item>
-    <Item href="/process"><IconBlocks/></Item>
-    <Item href="/programs"><IconPackages/></Item>
-    <Item href="/memory"><IconDeviceSdCard/></Item>
-    <Item href="/driver"><IconDeviceUsb/></Item>
-    <Item href="/handles"><IconFile/></Item>
-    <Item href="/tcp-table"><IconNetwork/></Item>
+    <Item href="/"><IconHome/>Home</Item>
+    <Item href="/process"><IconBlocks/> Processes </Item>
+    <Item href="/programs"><IconPackages/> Programs</Item>
+    <Item href="/memory"><IconDeviceSdCard/> Memory</Item>
+    <Item href="/driver"><IconDeviceUsb/> Drivers</Item>
+    <Item href="/handles"><IconFile/> Handles</Item>
+    <Item href="/net-table"><IconNetwork/> Net Table</Item>
     <Item onclick={onCheck} className="mt-auto"><IconRefresh/></Item>
 </nav>

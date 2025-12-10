@@ -16,12 +16,12 @@
 
 {#if href}
   <a href={href}
-    class={`p-1 hover:bg-gray-700 group ${className ?? ""}`}
+    class={`flex gap-1 items-center p-1 hover:bg-gray-700 group ${className ?? ""}`}
     data-selected={page.url.pathname === href} >
     {@render children?.()}
   </a>
 {:else if onclick}
-  <button type="button" class={`p-1 ${className ?? ""}`} onclick={onclick} >
+  <button type="button" class={`flex gap-1 p-1 ${className ?? ""}`} onclick={onclick} >
     {@render children?.()}
   </button>
 {/if}

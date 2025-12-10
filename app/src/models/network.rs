@@ -17,8 +17,8 @@ pub struct NetTableEntry {
 #[serde(tag = "protocol", rename_all = "lowercase")]
 pub enum ProtocolInfo {
     Tcp {
-        remote_port: u16,
-        remote_ip_address: Ipv4Addr,
+        remote_port: Option<u16>,
+        remote_ip_address: Option<Ipv4Addr>,
         state: TcpState,
     },
     Udp,

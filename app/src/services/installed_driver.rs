@@ -52,7 +52,7 @@ impl InstalledDriverService {
         let mut drivers = Vec::new();
 
         unsafe {
-            let key_path = WideCString::from_str("DRIVERS\\DriverDatabase\\DriverPackages")?;
+            let key_path = WideCString::from_str("SYSTEM\\CurrentControlSet\\Control\\DriverDatabase\\DriverPackages")?;
             let mut hkey: HKEY = ptr::null_mut();
 
             if RegOpenKeyExW(
@@ -68,7 +68,6 @@ impl InstalledDriverService {
             let mut index = 0;
 
             loop {
-                // Enumerate subkeys
                 let mut name_buf = [0u16; 300];
                 let mut name_len = name_buf.len() as DWORD;
 

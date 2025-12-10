@@ -16,6 +16,6 @@ pub fn generate_handlers() -> Box<dyn Fn(Invoke) -> bool + Send + Sync> {
         process::get_process,
         program::get_programs,
         program::get_programs_count,
-        network::get_tcp_table,
+        network::get_net_table,
     ])
 }

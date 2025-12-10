@@ -3,24 +3,13 @@ use std::{
 };
 
 use anyhow::{bail, Result};
-use ntapi::ntexapi::{NtQuerySystemInformation, SystemExtendedHandleInformation, SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX};
+use ntapi::{ntexapi::{NtQuerySystemInformation, SystemExtendedHandleInformation, SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX}, ntobapi::{NtQueryObject, OBJECT_NAME_INFORMATION, OBJECT_TYPE_INFORMATION}};
 use winapi::shared::{ntdef::{NTSTATUS, PVOID, ULONG}, ntstatus::STATUS_INFO_LENGTH_MISMATCH};
 use winapi::um::handleapi::CloseHandle;
 use windows::Wdk::System::{self, SystemInformation::{}};
 use log::*;
 
 use crate::{models::HandleInfo, services::ProcessManager};
-
-#[repr(C)]
-#[derive(Clone, Copy, Debug)]
-pub struct SYSTEM_HANDLE_TABLE_ENTRY_INFO {
-    pub process_id: u32,
-    pub object_type: u8,
-    pub flags: u8,
-    pub handle: u16,
-    pub object: usize,
-    pub granted_access: u32,
-}
 
 #[derive(Debug)]
 pub struct CacheEntry {
@@ -108,6 +97,9 @@ impl HandleManager {
             let pid = entry.UniqueProcessId as u32;
 
             let process_name = process_name_map.get(&pid).cloned().unwrap_or_default();
+
+            // NtQueryObject(entry.HandleValue, ObjectNameInformation, mem::size_of::<OBJECT_NAME_INFORMATION>(), 0, 0);
+            // NtQueryObject(entry.HandleValue, ObjectTypeInformation, mem::size_of::<OBJECT_TYPE_INFORMATION>(), 0, 0);
 
             handles.push(HandleInfo {
                 process_id: pid,

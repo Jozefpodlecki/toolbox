@@ -141,9 +141,9 @@ impl NetTableService {
             } = item;
 
             let local_port = u16::from_be(dwLocalPort as u16);
-            let remote_port = u16::from_be(dwRemotePort as u16);
+            let remote_port = if dwRemotePort != 0 { Some(u16::from_be(dwRemotePort as u16)) } else { None };
             let local_ip_address = Ipv4Addr::from(dwLocalAddr);
-            let remote_ip_address = Ipv4Addr::from(dwRemoteAddr);
+            let remote_ip_address = if dwRemoteAddr != 0 { Some(Ipv4Addr::from(dwRemoteAddr)) } else { None };
             let state = dwState.into();
             let process_name = process_name_map.get(&process_id).cloned().unwrap_or_default();
 

@@ -1,179 +1,136 @@
 #![allow(unsafe_op_in_unsafe_fn)]
 
+use std::{mem::{self, MaybeUninit}, ptr::{self, addr_of_mut, null_mut}, slice};
+
 use anyhow::{bail, Result};
-use ntapi::ntexapi::{NtQuerySystemInformation, SystemExtendedHandleInformation, SYSTEM_INFORMATION_CLASS};
-use windows::Win32::{
-    Foundation::{CloseHandle, HANDLE, STATUS_INFO_LENGTH_MISMATCH},
-    System::{
-        ProcessStatus::K32GetProcessImageFileNameW, Threading::{OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION}
-    },
-};
-use std::{collections::HashMap, ffi::OsString, mem, os::windows::prelude::*, ptr, slice};
-use winapi::{shared::{iprtrmib::TCP_TABLE_OWNER_PID_ALL, minwindef::FALSE, tcpmib::MIB_TCPTABLE_OWNER_PID, ws2def::AF_INET}, um::{handleapi::{self, INVALID_HANDLE_VALUE}, iphlpapi::GetExtendedTcpTable, tlhelp32::{CreateToolhelp32Snapshot, Process32FirstW, Process32NextW, PROCESSENTRY32W, TH32CS_SNAPPROCESS}}};
+use ntapi::ntobapi::{NtQueryObject, ObjectNameInformation, ObjectTypeInformation, ObjectTypesInformation, OBJECT_INFORMATION_CLASS, OBJECT_NAME_INFORMATION, OBJECT_TYPES_INFORMATION, OBJECT_TYPE_INFORMATION, POBJECT_TYPES_INFORMATION};
+use winapi::shared::{ntdef::UNICODE_STRING, ntstatus::STATUS_INFO_LENGTH_MISMATCH};
 
-#[derive(Debug, Clone)]
-pub struct HandleInfo {
-    pub process_id: u32,
-    pub process_name: String,
-    pub handle: usize,
-    pub object_type_index: u16,
-    pub granted_access: u32,
-}
+use crate::api::enumerate_handles;
 
-#[repr(C)]
-#[derive(Clone, Copy, Debug)]
-pub struct SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX {
-    pub object: *mut core::ffi::c_void,
-    pub unique_process_id: usize,
-    pub handle_value: usize,
-    pub granted_access: u32,
-    pub creator_backtrace_index: u16,
-    pub object_type_index: u16,
-    pub handle_attributes: u32,
-    pub reserved: u32,
-}
+mod api;
 
-unsafe fn list_tcp_ports() {
-    let mut size = 0u32;
+// const OBJECT_TYPES_INFORMATION_CLASS: OBJECT_INFORMATION_CLASS = unsafe { mem::transmute(3u32) };
 
-    GetExtendedTcpTable(
-        std::ptr::null_mut(),
-        &mut size,
-        false.into(),
-        AF_INET as u32,
-        TCP_TABLE_OWNER_PID_ALL,
+unsafe fn list_object_types() -> Vec<String> {
+
+    let mut size = 0;
+
+    let status = NtQueryObject(
+        ptr::null_mut(),
+        ObjectTypesInformation,
+        ptr::null_mut(),
         0,
+        &mut size,
     );
+
+
+    println!("{} {}", status, size);
+    // let info: OBJECT_TYPES_INFORMATION = Default::default();
+    let mut info_ptr: POBJECT_TYPES_INFORMATION = Default::default();
+    //   println!("{:?}", (*info).NumberOfTypes);
+    // let mut buffer = vec![0u8; size as usize];
+
+    // let status = NtQueryObject(
+    //     ptr::null_mut(),
+    //     ObjectTypesInformation,
+    //     info as *mut _,
+    //     0,
+    //     &mut size,
+    // );
+
+    //  println!("{:?}", (*info).NumberOfTypes);
+
+    // status = NtQueryObject(ptr::null_mut(), ObjectTypesInformation, buffer, 28, &mut size);
+
+    vec![]
+}
+
+unsafe fn get_object_name(handle: usize) -> Option<String> {
+    let mut size: u32 = 0;
+
+    // First call to get required buffer size
+    let status = NtQueryObject(
+        handle as *mut _,
+        ObjectNameInformation,
+        ptr::null_mut(),
+        0,
+        &mut size,
+    );
+
+    if status != STATUS_INFO_LENGTH_MISMATCH {
+        return None;
+    }
 
     let mut buffer = vec![0u8; size as usize];
-    let table_ptr = buffer.as_mut_ptr() as *mut MIB_TCPTABLE_OWNER_PID;
 
-    let result = GetExtendedTcpTable(
-        table_ptr as *mut _,
-        &mut size,
-        false.into(),
-        AF_INET as u32,
-        TCP_TABLE_OWNER_PID_ALL,
-        0,
-    );
-
-    if result != 0 {
-        println!("Failed: {:#X}", result);
-        return;
-    }
-
-    let table = &*table_ptr;
-    let rows_ptr = table.table.as_ptr();
-    let rows = slice::from_raw_parts(rows_ptr, table.dwNumEntries as usize);
-
-    for row in rows.iter() {
-        let pid = row.dwOwningPid;
-        let port = u16::from_be(row.dwLocalPort as u16);
-        println!("PID {} listens on port {}", pid, port);
-    }
-}
-
-pub unsafe fn enumerate_handles() -> Result<Vec<HandleInfo>> {
-
-    let mut buffer_size = 0x10000;
-    let mut buffer = vec![0u8; buffer_size];
-    let mut return_length: u32 = 0;
-
-    let mut status = NtQuerySystemInformation(
-        SystemExtendedHandleInformation,
+    let status = NtQueryObject(
+        handle as *mut _,
+        ObjectNameInformation,
         buffer.as_mut_ptr() as *mut _,
-        buffer_size as u32,
-        &mut return_length,
+        size,
+        &mut size,
     );
-
-    while status == STATUS_INFO_LENGTH_MISMATCH.0 {
-        buffer_size = (return_length as usize).saturating_add(512);
-        buffer.resize(buffer_size, 0);
-
-        status = NtQuerySystemInformation(
-            SystemExtendedHandleInformation,
-            buffer.as_mut_ptr() as *mut _,
-            buffer_size as u32,
-            &mut return_length,
-        );
-    }
 
     if status != 0 {
-        bail!("NtQuerySystemInformation failed: 0x{:X}", status);
+        return None;
     }
 
-    let ptr = buffer.as_ptr() as *const usize;
-    let handle_count = *ptr;
-    let entries_ptr = ptr.add(2) as *const SYSTEM_HANDLE_TABLE_ENTRY_INFO_EX; 
-
-    let process_map = get_process_map()?;
-
-    let mut handles = Vec::with_capacity(handle_count);
-    for i in 0..handle_count {
-        let entry = ptr::read_unaligned(entries_ptr.add(i));
-        let pid = entry.unique_process_id as u32;
-
-        let process_name = process_map.get(&pid).cloned().unwrap_or_default();
-
-        handles.push(HandleInfo {
-            process_id: pid,
-            process_name,
-            handle: entry.handle_value,
-            object_type_index: entry.object_type_index,
-            granted_access: entry.granted_access,
-        });
+    let name_info = buffer.as_ptr() as *const OBJECT_NAME_INFORMATION;
+    if (*name_info).Name.Buffer.is_null() {
+        return None;
     }
 
-    Ok(handles)
+    let len = (*name_info).Name.Length / 2; // bytes → u16 count
+    let slice = slice::from_raw_parts((*name_info).Name.Buffer, len as usize);
+    Some(String::from_utf16_lossy(slice))
 }
-
-unsafe fn get_process_map() -> Result<HashMap<u32, String>> {
-    let mut map = HashMap::new();
-
-    let snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-    if snapshot == INVALID_HANDLE_VALUE {
-        bail!("snapshot fail")
-    }
-
-    let mut entry: PROCESSENTRY32W = std::mem::zeroed();
-    entry.dwSize = std::mem::size_of::<PROCESSENTRY32W>() as u32;
-
-    if Process32FirstW(snapshot, &mut entry) == FALSE {
-        handleapi::CloseHandle(snapshot);
-        bail!("Process32FirstW fail");
-    }
-
-    loop {
-        let name_len = entry.szExeFile.iter().position(|&c| c == 0).unwrap_or(entry.szExeFile.len());
-        let name = OsString::from_wide(&entry.szExeFile[..name_len])
-            .to_string_lossy()
-            .into_owned();
-
-        map.insert(entry.th32ProcessID, name);
-
-        if Process32NextW(snapshot, &mut entry) == FALSE {
-            break;
-        }
-    }
-
-    handleapi::CloseHandle(snapshot);
-    Ok(map)
-}
-
 
 fn main() -> Result<()> {
 
-    unsafe { list_tcp_ports() }
+    let handles = unsafe { enumerate_handles()? };
 
-    // let handles = unsafe { enumerate_handles()? };
+    let handle = handles.first().unwrap();
 
-    // println!("Total handles: {}", handles.len());
-    // for h in handles.iter().take(20) { 
-    //     println!(
-    //         "PID: {:5} Name: {:30} Handle: {:X} Type: {:2} Access: {:X}",
-    //         h.process_id, h.process_name, h.handle, h.object_type_index, h.granted_access
-    //     );
-    // }
+    unsafe {
+        println!("{:?}", get_object_name(handle.handle));
+
+        println!("{:?}", handle);
+        let mut size = 0;
+        let mut name_info = MaybeUninit::<OBJECT_NAME_INFORMATION>::uninit();
+        addr_of_mut!((*name_info.as_mut_ptr()).Name).write(UNICODE_STRING {
+            Length: 0,
+            MaximumLength: 0,
+            Buffer: null_mut(),
+        });
+        let mut name_info = name_info.assume_init();
+        NtQueryObject(
+            handle.handle as *mut winapi::ctypes::c_void,
+            ObjectNameInformation,
+            &mut name_info as *mut OBJECT_NAME_INFORMATION as *mut _,
+            mem::size_of::<OBJECT_NAME_INFORMATION>() as u32,
+            &mut size);
+        println!("{:?}", size);
+
+        if name_info.Name.Buffer.is_null() {
+             println!("null");
+            return Ok(());
+        } else {
+            let test = String::from_utf16(std::slice::from_raw_parts(
+                name_info.Name.Buffer,
+                (name_info.Name.Length / 2) as usize,
+            )).unwrap();
+            println!("{}", test);
+        }
+        // println!("{:?}", name_info.Name.);
+        // NtQueryObject(
+        //     handle.handle as *mut winapi::ctypes::c_void,
+        //     ObjectTypeInformation,
+        //      as *mut _,
+        //     mem::size_of::<OBJECT_TYPE_INFORMATION>() as u32,
+        //     &mut size);
+        // println!("{:?}", size);
+    }
 
     Ok(())
 }

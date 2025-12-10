@@ -50,7 +50,14 @@ export interface GetProgramsArgs extends PageArgs {
     
 }
 
-
+export interface GetNetTableArgs extends PageArgs {
+    protocols: Array<"tcp" | "udp">;
+    processName: string | null;
+    localPort: number | null;
+    remotePort: number | null;
+    localIpAddr: string | null;
+    remoteIpAddr: string | null;
+}
 
 export type PagedProcessResult = {
     type: "hierarchy";
@@ -76,7 +83,7 @@ export interface Program {
     path: string;
 }
 
-export interface TcpTableEntry {
+export interface NetTableEntry {
     localIpAddress: string;
     localPort: number;
     processId: number;

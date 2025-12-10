@@ -7,7 +7,7 @@ license = ""
 repository = "https://github.com/Jozefpodlecki/toolbox"
 default-run = "toolbox"
 edition = "2024"
-rust-version = "1.90.0"
+rust-version = "1.91.0"
 
 [lib]
 name = "toolbox_lib"
