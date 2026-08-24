@@ -1,0 +1,33 @@
+[build]
+target = "./index.html"
+public_url = "/"
+minify = "on_release"
+filehash = true
+
+[serve]
+# address = "127.0.0.1"
+port = 1420
+open = false
+
+ignore = [
+    "index.html",
+    "docs/",
+    "dist/",
+    "tools/",
+    "icons/",
+    ".github/",
+    "target/",
+    ".gitignore"
+]
+
+[[hooks]]
+stage = "pre_build"
+command = "powershell"
+command_arguments = [
+    "npx",
+    # "--quiet",
+    "@tailwindcss/cli",
+    "-i", "./styles/main.css",
+    "-o", "./styles/output.css",
+    "*> $null"
+]

@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    "crates/iso-viewer",
+    "web"
+]
+resolver = "2"

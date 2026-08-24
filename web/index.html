@@ -1,0 +1,102 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="description" content="">
+		<meta name="author" content="Jozef Podlecki">
+		<title>Toolbox</title>
+		<link rel="icon" data-trunk href="icons/favicon.ico" />
+		<link data-trunk rel="css" href="styles/output.css" />
+		<link data-trunk rel="copy-dir" href="public" />
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+
+		<style>
+			html, body {
+				height: 100%
+			}
+
+			body {
+				background: #000;
+				margin: 0;
+			}
+
+			.background {
+				position: absolute;
+				inset: 0;
+				width: 100%;
+				height: 100%;
+				object-fit: cover;
+				z-index: -1;
+				filter: brightness(0.70);
+			}
+
+			.loader-wrapper {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				height: 100%;
+			}
+
+			.loader {
+				--size: 10px;
+				--scale: 1.5;
+				
+				display: grid;
+				grid-template-columns: repeat(3, calc(var(--size) * var(--scale)));
+				grid-template-rows: repeat(3, calc(var(--size) * var(--scale)));
+				gap: calc(var(--size) * var(--scale));
+			}
+
+			.square {
+				width: calc(var(--size) * var(--scale));
+				height: calc(var(--size) * var(--scale));
+				background: #ddd;
+				animation: loader 675ms ease-in-out infinite alternate;
+			}
+
+			.square:nth-child(1) { animation-delay: 0ms; }
+			.square:nth-child(2) { animation-delay: 75ms; }
+			.square:nth-child(3) { animation-delay: 150ms; }
+			.square:nth-child(4) { animation-delay: 225ms; }
+			.square:nth-child(5) { animation-delay: 300ms; }
+			.square:nth-child(6) { animation-delay: 375ms; }
+			.square:nth-child(7) { animation-delay: 450ms; }
+			.square:nth-child(8) { animation-delay: 525ms; }
+			.square:nth-child(9) { animation-delay: 600ms; }
+
+			@keyframes loader {
+				from {
+					opacity: 0;
+				}
+
+				to {
+					opacity: 1;
+				}
+			}
+    </style>
+  </head>
+  <body>
+	<script>
+		const dark = localStorage.getItem("dark");
+		const prefersDarkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
+		const useDarkMode = dark === "true" || (dark == null && prefersDarkMode);
+		document.body.classList.toggle("dark", dark);
+	</script>
+	<div data-loading class="loader-wrapper">
+		<div class="loader">
+			<div class="square"></div>
+			<div class="square"></div>
+			<div class="square"></div>
+			<div class="square"></div>
+			<div class="square"></div>
+			<div class="square"></div>
+			<div class="square"></div>
+			<div class="square"></div>
+			<div class="square"></div>
+		</div>
+	</div>
+  </body>
+</html>

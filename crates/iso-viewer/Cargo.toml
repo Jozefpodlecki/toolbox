@@ -1,0 +1,26 @@
+[package]
+name = "iso-viewer"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.96.0"
+categories = ["no-std"]
+authors = ["Jozef Podlecki <jozef.witold.podlecki@gmail.com>"]
+repository = "https://github.com/Jozefpodlecki/iso-viewer"
+
+[dev-dependencies]
+iced-x86 = "1.21"
+asm-rs = "0.2.0"
+yaxpeax-arm = "0.4.0"
+yaxpeax-arch = "0.3.2"
+hadris-iso = { path = "C:\\repos\\hadris\\crates\\optical\\hadris-iso" }
+hadris-fat = "*"
+
+[dependencies]
+rand = "0.10.2"
+bitflags = "2.13.1"
+heapless = "0.9.3"
+stack_dst = { version = "0.8.1", default-features = false, features = [] }
+
+[features]
+default = ["alloc"]
+alloc = []
