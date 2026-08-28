@@ -1,6 +1,5 @@
 use yew::prelude::*;
 use yew_router::prelude::*;
-use yew_icons::{Icon, IconData};
 
 use crate::components::Navbar;
 use crate::app::Route;

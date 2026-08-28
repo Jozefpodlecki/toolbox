@@ -13,9 +13,10 @@ pub struct FatLayout {
 impl FatLayout {
     pub fn new(
         size: u64,
-        fat_type: &FatType,
+        fat_type: FatType,
         bytes_per_sector: u16,
         sectors_per_cluster: u8,
+        root_entries: u16,
     ) -> Self {
 
         let total_sectors =
@@ -23,14 +24,14 @@ impl FatLayout {
 
         let total_sectors = total_sectors as u32;
 
-        let (reserved_sectors, root_entries) = match fat_type {
-            FatType::Fat12 | FatType::Fat16 => {
-                (1u16, 224u16)
-            }
+        let reserved_sectors = match fat_type {
+            FatType::Fat12 | FatType::Fat16 => 1,
+            FatType::Fat32 => 32,
+        };
 
-            FatType::Fat32 => {
-                (32u16, 0u16)
-            }
+        let root_entries = match fat_type {
+            FatType::Fat12 | FatType::Fat16 => root_entries,
+            FatType::Fat32 => 0,
         };
 
         let root_dir_sectors =
@@ -63,78 +64,87 @@ impl FatLayout {
         layout
     }
 
-    pub fn new_validated(
+    pub fn for_size(
         size: u64,
-        fat_type: &FatType,
+        required_clusters: usize,
+        fat_type: FatType,
         bytes_per_sector: u16,
         sectors_per_cluster: u8,
+        root_entries: u16,
     ) -> FatResult<Self> {
-        if !bytes_per_sector.is_power_of_two()
-            || bytes_per_sector < 512
-            || bytes_per_sector > 4096
-        {
-            return Err(FatError::InvalidSectorSize);
+        let layout = Self::new(
+            size,
+            fat_type,
+            bytes_per_sector,
+            sectors_per_cluster,
+            root_entries,
+        );
+
+        if layout.cluster_count() < required_clusters as u32 {
+            return Err(FatError::ClusterFull);
         }
 
-        if sectors_per_cluster == 0
-            || !sectors_per_cluster.is_power_of_two()
-        {
-            return Err(FatError::InvalidSectorsPerCluster);
-        }
+        Ok(layout)
+    }
 
-        let total_sectors =
-            size / bytes_per_sector as u64;
+    pub fn for_clusters(
+        required_clusters: usize,
+        fat_type: FatType,
+        bytes_per_sector: u16,
+        sectors_per_cluster: u8,
+        root_entries: u16,
+    ) -> FatResult<Self> {
+        let bytes_per_sector = bytes_per_sector as u64;
+        let sectors_per_cluster = sectors_per_cluster as u64;
 
-        let total_sectors =
-            u32::try_from(total_sectors)
-                .map_err(|_| FatError::VolumeTooLarge)?;
-
-        if total_sectors == 0 {
-            return Err(FatError::VolumeTooSmall);
-        }
-
-        let (reserved_sectors, root_entries) = match fat_type {
-            FatType::Fat12 | FatType::Fat16 => {
-                (1u16, 224u16)
-            }
-
-            FatType::Fat32 => {
-                (32u16, 0u16)
-            }
+        let reserved_sectors = match fat_type {
+            FatType::Fat12 | FatType::Fat16 => 1u64,
+            FatType::Fat32 => 32u64,
         };
 
         let root_dir_sectors =
-            Self::root_dir_sectors(
-                bytes_per_sector,
-                root_entries,
-            );
+            ((root_entries as u64 * 32) + bytes_per_sector - 1)
+                / bytes_per_sector;
 
-        let sectors_per_fat =
-            Self::calculate_sectors_per_fat(
-                total_sectors,
-                reserved_sectors,
-                2,
-                root_dir_sectors,
-                sectors_per_cluster,
-                bytes_per_sector,
-                fat_type,
-            )?;
+        let mut sectors_per_fat = 1u64;
 
-        let layout = Self {
-            bytes_per_sector,
-            sectors_per_cluster,
-            reserved_sectors,
-            fat_count: 2,
-            root_entries,
-            total_sectors,
-            sectors_per_fat,
-        };
+        loop {
+            let data_sectors =
+                required_clusters as u64 * sectors_per_cluster;
 
-        fat_type.validate_cluster_count(
-            layout.cluster_count(),
-        )?;
+            let total_sectors =
+                reserved_sectors
+                + 2 * sectors_per_fat
+                + root_dir_sectors
+                + data_sectors;
 
-        Ok(layout)
+            let fat_entries = required_clusters as u64 + 2;
+
+            let fat_bytes = match fat_type {
+                FatType::Fat12 => (fat_entries * 3).div_ceil(2),
+                FatType::Fat16 => fat_entries * 2,
+                FatType::Fat32 => fat_entries * 4,
+            };
+
+            let new_sectors_per_fat =
+                fat_bytes.div_ceil(bytes_per_sector);
+
+            if new_sectors_per_fat == sectors_per_fat {
+                let size = total_sectors
+                    .checked_mul(bytes_per_sector)
+                    .ok_or(FatError::VolumeTooLarge)?;
+
+                return Ok(Self::new(
+                    size,
+                    fat_type,
+                    bytes_per_sector as u16,
+                    sectors_per_cluster as u8,
+                    root_entries,
+                ));
+            }
+
+            sectors_per_fat = new_sectors_per_fat;
+        }
     }
 
     pub fn create_bpb(
@@ -204,7 +214,7 @@ impl FatLayout {
         root_dir_sectors: u32,
         sectors_per_cluster: u8,
         bytes_per_sector: u16,
-        fat_type: &FatType,
+        fat_type: FatType,
     ) -> FatResult<u16> {
         let mut sectors_per_fat = 1u32;
 

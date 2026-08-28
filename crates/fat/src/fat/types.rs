@@ -1,6 +1,8 @@
 use alloc::{string::String, vec::Vec};
 use core::{fmt, mem};
-use std::mem::transmute;
+use core::mem::transmute;
+
+use crate::fat::FatFileEntry;
 
 #[repr(u16)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -36,7 +38,7 @@ impl SectorsPerCluster {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum FatType {
     Fat12,
     Fat16,
@@ -107,6 +109,22 @@ impl FatType {
         }
     }
 
+    pub const fn reserved_entries(&self) -> [u32; 2] {
+        match self {
+            Self::Fat12 => [0xFF8, 0xFFF],
+            Self::Fat16 => [0xFFF8, 0xFFFF],
+            Self::Fat32 => [0x0FFF_FFF8, 0xFFFF_FFFF],
+        }
+    }
+
+    pub const fn end_of_chain(&self) -> u32 {
+        match self {
+            Self::Fat12 => 0xFFF,
+            Self::Fat16 => 0xFFFF,
+            Self::Fat32 => 0x0FFF_FFFF,
+        }
+    }
+
     pub fn validate_cluster_count(
         &self,
         cluster_count: u32,
@@ -163,6 +181,7 @@ pub enum FatError {
     InvalidName,
     VolumeTooSmall,
     VolumeTooLarge,
+    InvalidDateTime,
     CapacityExceeded {
         required_clusters: usize,
         available_clusters: usize,
@@ -172,6 +191,8 @@ pub enum FatError {
 impl fmt::Display for FatError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Self::InvalidDateTime =>
+                write!(f, "invalid datetime"),
             Self::FileTooLarge =>
                 write!(f, "file is too large for FAT"),
             Self::SizeOverflow =>
@@ -535,7 +556,7 @@ impl ShortFileName {
 
 #[repr(C, packed)]
 #[derive(Clone, Copy, Debug)]
-pub struct DirectoryEntry {
+pub struct FatDirectoryEntry {
     pub name: ShortFileName,
     pub attributes: u8,
     pub nt_reserved: u8,
@@ -575,7 +596,7 @@ impl fmt::Display for ShortFileNameError {
 
 impl core::error::Error for ShortFileNameError {}
 
-impl DirectoryEntry {
+impl FatDirectoryEntry {
     pub fn new(
         name: &str,
         attributes: u8,
@@ -732,27 +753,6 @@ impl RawFsInfo {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
-pub struct FatFileEntry {
-    pub name: String,
-    pub contents: Vec<u8>,
-    pub is_directory: bool,
-    pub children: Vec<FatFileEntry>,
-}
-
-impl FatFileEntry {
-    pub fn required_clusters(&self, cluster_size: usize) -> usize {
-        let bytes = if self.is_directory {
-            (self.children.len() + 2)
-                * mem::size_of::<DirectoryEntry>()
-        } else {
-            self.contents.len()
-        };
-
-        bytes.div_ceil(cluster_size).max(1)
-    }
-}
-
 #[derive(Clone)]
 pub struct AllocatedEntry {
     pub entry: FatFileEntry,
@@ -772,22 +772,11 @@ impl ClusterAllocator {
     ) -> Self {
         let mut fat = vec![0; cluster_count + 2];
 
-        match fat_type {
-            FatType::Fat12 => {
-                fat[0] = 0xFF8;
-                fat[1] = 0xFFF;
-            }
+        let [reserved0, reserved1] =
+            fat_type.reserved_entries();
 
-            FatType::Fat16 => {
-                fat[0] = 0xFFF8;
-                fat[1] = 0xFFFF;
-            }
-
-            FatType::Fat32 => {
-                fat[0] = 0x0FFF_FFF8;
-                fat[1] = 0xFFFF_FFFF;
-            }
-        }
+        fat[0] = reserved0;
+        fat[1] = reserved1;
 
         Self {
             next_cluster: 2,
@@ -810,15 +799,10 @@ impl ClusterAllocator {
             .ok_or(FatError::ClusterFull)?;
 
         if last_exclusive as usize > self.fat.len() {
-            println!("last_exclusive as usize > self.fat.len()");
             return Err(FatError::ClusterFull);
         }
 
-        let eoc = match fat_type {
-            FatType::Fat12 => 0xFFF,
-            FatType::Fat16 => 0xFFFF,
-            FatType::Fat32 => 0x0FFF_FFFF,
-        };
+        let eoc = fat_type.end_of_chain();
 
         let mut clusters = Vec::with_capacity(count);
 
@@ -840,5 +824,59 @@ impl ClusterAllocator {
 
     pub fn used(&self) -> usize {
         self.next_cluster.saturating_sub(2) as usize
+    }
+}
+
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct FatDateTime {
+    pub year: u16,
+    pub month: u8,
+    pub day: u8,
+    pub hour: u8,
+    pub minute: u8,
+    pub second: u8,
+    pub millisecond: u16,
+}
+
+impl FatDateTime {
+    pub fn date(&self) -> FatResult<u16> {
+        if !(1980..=2107).contains(&self.year)
+            || !(1..=12).contains(&self.month)
+            || !(1..=31).contains(&self.day)
+        {
+            return Err(FatError::InvalidDateTime);
+        }
+
+        Ok(
+            ((self.year - 1980) << 9)
+                | ((self.month as u16) << 5)
+                | self.day as u16
+        )
+    }
+
+    pub fn time(&self) -> FatResult<u16> {
+        if self.hour > 23
+            || self.minute > 59
+            || self.second > 59
+        {
+            return Err(FatError::InvalidDateTime);
+        }
+
+        Ok(
+            ((self.hour as u16) << 11)
+                | ((self.minute as u16) << 5)
+                | (self.second as u16 / 2)
+        )
+    }
+
+    pub fn time_tenth(&self) -> FatResult<u8> {
+        if self.millisecond >= 2000 {
+            return Err(FatError::InvalidDateTime);
+        }
+
+        Ok(
+            (self.millisecond / 10) as u8
+        )
     }
 }

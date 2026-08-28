@@ -1,4 +1,4 @@
-// #![no_std]
+#![no_std]
 #![allow(unused)]
 
 #[cfg(feature = "alloc")]
@@ -6,9 +6,11 @@
 extern crate alloc;
 
 mod types;
-mod fat;
-mod builder;
+mod utils;
+mod error;
+mod info;
 
 pub use types::*;
-pub use fat::*;
-pub use builder::*;
+pub use utils::*;
+pub use error::*;
+pub use info::*;

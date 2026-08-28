@@ -1,71 +1,55 @@
-use alloc::{string::String, vec::Vec};
+use alloc::{rc::Rc, string::String, vec::Vec};
 
-#[derive(Default, Clone, Debug, PartialEq)]
-pub struct VolumeConfig {
-    pub volume_name: Option<String>,
-    pub system_id: Option<String>,
-    pub volume_set_id: Option<String>,
-    pub publisher_id: Option<String>,
-    pub preparer_id: Option<String>,
-    pub application_id: Option<String>,
-}
+use crate::IsoError;
 
-#[derive(Clone, Debug, PartialEq)]
-pub enum BootConfig {
-    None,
-    Configured {
-        platform: BootPlatform,
-        image_path: String,
-        emulation: BootEmulation,
-        boot_info_table: bool,
-    },
-}
+pub type IsoResult<T> = Result<T, IsoError>;
 
-impl Default for BootConfig {
-    fn default() -> Self {
-        Self::None
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct Logger(Vec<Rc<str>>);
+
+impl Logger {
+    pub const fn new() -> Self {
+        Self(vec![])
+    }
+
+    pub fn log(&mut self, message: impl Into<Rc<str>>) {
+        self.0.push(message.into());
+    }
+
+    pub fn log_format(&mut self, message: &str, args: impl core::fmt::Debug) {
+        self.0.push(format!("{}: {:?}", message, args).into());
+    }
+
+    pub fn clear(&mut self) {
+        self.0.clear();
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    pub fn into_inner(self) -> Vec<Rc<str>> {
+        self.0
     }
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub enum BootPlatform {
-    Bios,
-    Uefi,
-    Both,
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub enum BootEmulation {
-    NoEmulation,
-    Floppy,
-    HardDisk,
-    CDRom,
-}
-
-#[derive(Clone, Debug, PartialEq)]
-pub struct FileEntry {
+pub struct DirectoryEntry {
     pub name: String,
-    pub contents: Vec<u8>,
     pub is_directory: bool,
-    pub children: Vec<FileEntry>,
+    pub size: u64,
+    pub lba: u32,
+    pub children: Vec<DirectoryEntry>,
 }
 
-impl FileEntry {
-    pub fn file(name: impl Into<String>, contents: Vec<u8>) -> Self {
-        Self {
-            name: name.into(),
-            contents,
-            is_directory: false,
-            children: Vec::new(),
-        }
-    }
-
-    pub fn dir(name: impl Into<String>) -> Self {
-        Self {
-            name: name.into(),
-            contents: Vec::new(),
-            is_directory: true,
-            children: Vec::new(),
-        }
-    }
+#[derive(Clone, Debug, PartialEq)]
+pub struct BootEntryInfo {
+    pub platform: String,
+    pub bootable: bool,
+    pub lba: u32,
+    pub sectors: u32,
 }

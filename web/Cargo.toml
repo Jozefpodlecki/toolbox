@@ -28,7 +28,7 @@ yew_icons = {version = "0.10", features = ["lucide", "simple_icons"]}
 rand = "0.10.0"
 getrandom = { version = "0.4.2", features = ["wasm_js"] }
 chrono = { version = "0.4.44", features = ["serde"] }
-thiserror = "*"
+thiserror = "2.0.20"
 iso-viewer = { path = "../crates/iso-viewer" }
 
 [dependencies.web-sys]

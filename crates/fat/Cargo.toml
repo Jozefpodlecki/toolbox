@@ -1,0 +1,16 @@
+[package]
+name = "fat"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.96.0"
+categories = ["no-std"]
+authors = ["Jozef Podlecki <jozef.witold.podlecki@gmail.com>"]
+repository = "https://github.com/Jozefpodlecki/iso-viewer"
+
+[dev-dependencies]
+
+[dependencies]
+
+[features]
+default = ["alloc"]
+alloc = []

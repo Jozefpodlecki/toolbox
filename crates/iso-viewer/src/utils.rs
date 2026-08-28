@@ -1,9 +1,10 @@
-use super::types::*;
-use std::collections::HashMap;
+use alloc::{collections::{BTreeMap, BTreeSet}, string::{String, ToString}, vec::Vec};
 
-const ISO_SECTOR_SIZE: usize = 2048;
-const PVD_SECTOR: usize = 16;
-const BOOT_CATALOG_SECTOR: usize = 17;
+use crate::*;
+
+pub const ISO_SECTOR_SIZE: usize = 2048;
+pub const PVD_SECTOR: usize = 16;
+pub const BOOT_CATALOG_SECTOR: usize = 17;
 
 pub fn format_size(size: u64) -> String {
     const UNITS: [&str; 5] = ["B", "KB", "MB", "GB", "TB"];
@@ -88,7 +89,7 @@ pub fn parse_iso_volume_descriptor(data: &[u8], logger: &mut Logger) -> IsoResul
 }
 
 pub fn parse_directory(data: &[u8], lba: u32, size: u32, logger: &mut Logger) -> IsoResult<Vec<DirectoryEntry>> {
-    parse_directory_with_visited(data, lba, size, logger, &mut std::collections::HashSet::new())
+    parse_directory_with_visited(data, lba, size, logger, &mut BTreeSet::new())
 }
 
 pub fn parse_directory_with_visited(
@@ -96,7 +97,7 @@ pub fn parse_directory_with_visited(
     lba: u32,
     size: u32,
     logger: &mut Logger,
-    visited: &mut std::collections::HashSet<u32>,
+    visited: &mut BTreeSet<u32>,
 ) -> IsoResult<Vec<DirectoryEntry>> {
     if !visited.insert(lba) {
         logger.log_format("Circular directory reference detected at LBA", lba);
@@ -315,66 +316,4 @@ pub fn count_files(entries: &[DirectoryEntry]) -> usize {
         }
     }
     count
-}
-
-pub fn parse_iso_info(data: &[u8]) -> (IsoResult<IsoInfo>, Logger) {
-    let mut logger = Logger::new();
-    logger.log("Starting ISO parsing");
-
-    let (volume_name, system_id, root_lba, root_size) = match parse_iso_volume_descriptor(data, &mut logger) {
-        Ok(value) => value,
-        Err(e) => {
-            logger.log_format("Failed to parse volume descriptor", &e);
-            return (Err(e), logger);
-        }
-    };
-
-    let root_entries = match parse_directory(data, root_lba, root_size, &mut logger) {
-        Ok(entries) => entries,
-        Err(e) => {
-            logger.log_format("Failed to parse root directory", &e);
-            return (Err(e), logger);
-        }
-    };
-
-    let (has_boot_catalog, boot_entries) = match parse_boot_catalog(data, &mut logger) {
-        Ok(value) => value,
-        Err(e) => {
-            logger.log_format("Failed to parse boot catalog", &e);
-            return (Err(e), logger);
-        }
-    };
-
-    let is_hybrid = check_hybrid(data);
-    logger.log_format("ISO is hybrid", is_hybrid);
-
-    let file_count = count_files(&root_entries);
-    logger.log_format("Total files found", file_count);
-
-    let mut metadata = HashMap::new();
-    if let Some(ref name) = volume_name {
-        metadata.insert("Volume Name".to_string(), name.clone());
-    }
-    if let Some(ref id) = system_id {
-        metadata.insert("System ID".to_string(), id.clone());
-    }
-    metadata.insert("Sector Size".to_string(), format!("{} bytes", ISO_SECTOR_SIZE));
-
-    log::info!("test");
-    logger.log("ISO parsing completed successfully");
-
-    let info = IsoInfo {
-        sector_size: ISO_SECTOR_SIZE as u16,
-        total_size: data.len() as u64,
-        file_count,
-        root_entries,
-        volume_name,
-        system_id,
-        is_hybrid,
-        has_boot_catalog,
-        boot_entries,
-        metadata,
-    };
-
-    (Ok(info), logger)
 }

@@ -8,18 +8,16 @@ authors = ["Jozef Podlecki <jozef.witold.podlecki@gmail.com>"]
 repository = "https://github.com/Jozefpodlecki/iso-viewer"
 
 [dev-dependencies]
-iced-x86 = "1.21"
-asm-rs = "0.2.0"
-yaxpeax-arm = "0.4.0"
-yaxpeax-arch = "0.3.2"
-hadris-iso = { path = "C:\\repos\\hadris\\crates\\optical\\hadris-iso" }
-hadris-fat = "*"
 
 [dependencies]
 rand = "0.10.2"
 bitflags = "2.13.1"
 heapless = "0.9.3"
 stack_dst = { version = "0.8.1", default-features = false, features = [] }
+crc = { version = "3.4.0" }
+hadris-iso = { path = "C:\\repos\\hadris\\crates\\optical\\hadris-iso" }
+hadris-fat = { path = "C:\\repos\\hadris\\crates\\block\\hadris-fat" }
+thiserror = { version = "2.0.20", default-features = false }
 
 [features]
 default = ["alloc"]

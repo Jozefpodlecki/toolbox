@@ -88,7 +88,7 @@ impl FatWriter {
 
                 let dir_entry =
                     if allocated.entry.is_directory {
-                        DirectoryEntry::directory(
+                        FatDirectoryEntry::directory(
                             &allocated.entry.name,
                             cluster,
                         )
@@ -97,7 +97,7 @@ impl FatWriter {
                             u32::try_from(allocated.entry.contents.len())
                                 .map_err(|_| FatError::FileTooLarge)?;
 
-                        DirectoryEntry::file(
+                        FatDirectoryEntry::file(
                             &allocated.entry.name,
                             cluster,
                             file_size,
@@ -134,19 +134,12 @@ impl FatWriter {
 
         self.write(
             root_offset,
-            &DirectoryEntry::dot(root_clusters[0]).map_err(|_| FatError::InvalidName)?,
-        )?;
-
-        self.write(
-            root_offset + 32,
-            &DirectoryEntry::dotdot().map_err(|_| FatError::InvalidName)?,
+            &FatDirectoryEntry::dot(root_clusters[0]).map_err(|_| FatError::InvalidName)?,
         )?;
 
         for (index, allocated) in allocations.iter().enumerate() {
-            let entry_index = index + 2;
-
             let byte_offset =
-                entry_index * mem::size_of::<DirectoryEntry>();
+                index * mem::size_of::<DirectoryEntry>();
 
             let cluster_index =
                 byte_offset / cluster_size;
@@ -168,7 +161,7 @@ impl FatWriter {
 
             let dir_entry =
                 if allocated.entry.is_directory {
-                    DirectoryEntry::directory(
+                    FatDirectoryEntry::directory(
                         &allocated.entry.name,
                         cluster,
                     )
@@ -177,7 +170,7 @@ impl FatWriter {
                         u32::try_from(allocated.entry.contents.len())
                             .map_err(|_| FatError::FileTooLarge)?;
 
-                    DirectoryEntry::file(
+                    FatDirectoryEntry::file(
                         &allocated.entry.name,
                         cluster,
                         file_size,
@@ -230,12 +223,12 @@ impl FatWriter {
 
         self.write(
             dir_offset,
-            &DirectoryEntry::dot(first_cluster).unwrap(),
+            &FatDirectoryEntry::dot(first_cluster).unwrap(),
         )?;
 
         self.write(
             dir_offset + 32,
-            &DirectoryEntry::new(
+            &FatDirectoryEntry::new(
                 "..",
                 0x10,
                 parent_cluster.unwrap_or(0),
@@ -255,12 +248,12 @@ impl FatWriter {
 
             let dir_entry =
                 if child.entry.is_directory {
-                    DirectoryEntry::directory(
+                    FatDirectoryEntry::directory(
                         &child.entry.name,
                         child_cluster,
                     ).unwrap()
                 } else {
-                    DirectoryEntry::file(
+                    FatDirectoryEntry::file(
                         &child.entry.name,
                         child_cluster,
                         child.entry.contents.len() as u32,
@@ -331,7 +324,7 @@ impl FatWriter {
             );
 
             let data_start = data_offset + (cluster as usize - 2) * cluster_size;
-
+   
             self.write_bytes(
                 data_start,
                 &contents[start..end],

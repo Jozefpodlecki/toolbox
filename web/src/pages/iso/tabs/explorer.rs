@@ -1,3 +1,4 @@
+use iso_viewer::DirectoryEntry;
 use yew::prelude::*;
 use yew_icons::{Icon, IconData};
 
@@ -36,7 +37,7 @@ fn render_entry(entry: &DirectoryEntry) -> Html {
                 <span class="text-gray-300 truncate">{name}</span>
                 if !is_dir {
                     <span class="text-xs text-gray-500 ml-auto flex-shrink-0">
-                        {format_size(size)}
+                        {size}
                     </span>
                 }
             </div>

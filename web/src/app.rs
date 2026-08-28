@@ -6,7 +6,7 @@ use yew::prelude::*;
 use yew_router::{HashRouter, Routable, Switch};
 use yew_icons::{Icon, IconData};
 
-use crate::{components::*, pages::{Home, IsoViewer}};
+use crate::{components::*, pages::{Home, IsoViewer, IsoViewerContextProvider}};
 
 #[derive(Debug, Clone, PartialEq, Properties)]
 pub struct AppProps {
@@ -33,7 +33,11 @@ pub enum Route {
 fn switch(routes: Route) -> Html {
     match routes {
         Route::Home => html! { <Home /> },
-        Route::IsoViewer => html! { <IsoViewer /> },
+        Route::IsoViewer => html! {
+            <IsoViewerContextProvider>
+                <IsoViewer />
+            </IsoViewerContextProvider>
+        },
         Route::NotFound => html! { <h1>{"404 - Page Not Found"}</h1> },
     }
 }

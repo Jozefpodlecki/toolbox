@@ -12,12 +12,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "asm-rs"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b43cd6bd0e5c09388248d6619d4f7e79b2f4f86b4aecf1f830430e40acee1455"
-
-[[package]]
 name = "autocfg"
 version = "1.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -39,18 +33,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b588b76d00fde79687d7646a9b5bdf3cc0f655e0bbd080335a95d7e96f3587da"
 dependencies = [
  "bytemuck",
-]
-
-[[package]]
-name = "bitvec"
-version = "1.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ddcec3d12c579d40898fe0a9a358a803c23e9c52ca3c425707f81c9436211837"
-dependencies = [
- "funty",
- "radium",
- "tap",
- "wyz",
 ]
 
 [[package]]
@@ -223,12 +205,6 @@ checksum = "cb4cb245038516f5f85277875cdaa4f7d2c9a0fa0468de06ed190163b1581fcf"
 dependencies = [
  "percent-encoding",
 ]
-
-[[package]]
-name = "funty"
-version = "2.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e6d5a32815ae3f33302d95fdcb2ce17862f8c65363dcfd29360480ba1001fc9c"
 
 [[package]]
 name = "futures"
@@ -541,30 +517,14 @@ dependencies = [
 
 [[package]]
 name = "hadris-common"
-version = "2.1.0"
+version = "2.2.0"
 dependencies = [
  "bytemuck",
  "chrono",
  "crc",
- "hadris-fixed 2.1.0",
- "hadris-io 2.1.0",
- "hadris-path 2.1.0",
- "heapless",
- "rand",
- "zerocopy",
-]
-
-[[package]]
-name = "hadris-common"
-version = "2.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8b75f2d1b972ab5baa6aaed686489e56568a7ba35ea34864fcb878b1f4ffc8c1"
-dependencies = [
- "chrono",
- "crc",
- "hadris-fixed 2.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "hadris-io 2.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "hadris-path 2.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "hadris-fixed",
+ "hadris-io",
+ "hadris-path",
  "heapless",
  "rand",
  "zerocopy",
@@ -572,50 +532,30 @@ dependencies = [
 
 [[package]]
 name = "hadris-fat"
-version = "2.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5f2e55913aa3102b95e4850117d92a6f8941734e48968418e9694b0e2999d8ca"
+version = "2.2.0"
 dependencies = [
  "bitflags",
  "bytemuck",
  "chrono",
- "hadris-common 2.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "hadris-fixed 2.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "hadris-io 2.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "hadris-macros 2.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "hadris-path 2.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "hadris-common",
+ "hadris-fixed",
+ "hadris-io",
+ "hadris-macros",
+ "hadris-path",
  "parse-size",
  "spin",
 ]
 
 [[package]]
 name = "hadris-fixed"
-version = "2.1.0"
+version = "2.2.0"
 dependencies = [
  "bytemuck",
 ]
 
 [[package]]
-name = "hadris-fixed"
-version = "2.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3e8a21d0ac22512eaffb08f1a5a0c3fdc432d171103e296c3f3a74b62dc219f0"
-
-[[package]]
 name = "hadris-io"
-version = "2.1.0"
-dependencies = [
- "bytemuck",
- "cfg-if",
- "embedded-io",
- "embedded-io-async",
-]
-
-[[package]]
-name = "hadris-io"
-version = "2.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0453cdaf618d562112b9e62957ca5b49ad5d4a10e382a6f68d2e1a75da25f8fa"
+version = "2.2.0"
 dependencies = [
  "bytemuck",
  "cfg-if",
@@ -625,17 +565,17 @@ dependencies = [
 
 [[package]]
 name = "hadris-iso"
-version = "2.1.0"
+version = "2.2.0"
 dependencies = [
  "bitflags",
  "bytemuck",
  "chrono",
- "hadris-common 2.1.0",
- "hadris-fixed 2.1.0",
- "hadris-io 2.1.0",
- "hadris-macros 2.1.0",
+ "hadris-common",
+ "hadris-fixed",
+ "hadris-io",
+ "hadris-macros",
  "hadris-part",
- "hadris-path 2.1.0",
+ "hadris-path",
  "spin",
  "thiserror 2.0.20",
  "tracing",
@@ -643,39 +583,25 @@ dependencies = [
 
 [[package]]
 name = "hadris-macros"
-version = "2.1.0"
-dependencies = [
- "proc-macro2",
-]
-
-[[package]]
-name = "hadris-macros"
-version = "2.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6d95245da3cf494f10cd677f0fdba375ffa8eca4990890de3f19742a1ef88b64"
+version = "2.2.0"
 dependencies = [
  "proc-macro2",
 ]
 
 [[package]]
 name = "hadris-part"
-version = "2.1.0"
+version = "2.2.0"
 dependencies = [
  "bytemuck",
+ "crc",
  "endian-num",
- "hadris-io 2.1.0",
- "hadris-macros 2.1.0",
+ "hadris-io",
+ "hadris-macros",
 ]
 
 [[package]]
 name = "hadris-path"
-version = "2.1.0"
-
-[[package]]
-name = "hadris-path"
-version = "2.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "351b73ecd5556a7f3709fd1d61dff9149e7b7f9aab4e2483400c9b29d35b2afc"
+version = "2.2.0"
 
 [[package]]
 name = "hash32"
@@ -744,15 +670,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "iced-x86"
-version = "1.21.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7c447cff8c7f384a7d4f741cfcff32f75f3ad02b406432e8d6c878d56b1edf6b"
-dependencies = [
- "lazy_static",
-]
-
-[[package]]
 name = "implicit-clone"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -786,16 +703,14 @@ dependencies = [
 name = "iso-viewer"
 version = "0.1.0"
 dependencies = [
- "asm-rs",
  "bitflags",
+ "crc",
  "hadris-fat",
  "hadris-iso",
  "heapless",
- "iced-x86",
  "rand",
  "stack_dst",
- "yaxpeax-arch",
- "yaxpeax-arm",
+ "thiserror 2.0.20",
 ]
 
 [[package]]
@@ -814,12 +729,6 @@ dependencies = [
  "futures-util",
  "wasm-bindgen",
 ]
-
-[[package]]
-name = "lazy_static"
-version = "1.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
 
 [[package]]
 name = "libc"
@@ -989,12 +898,6 @@ name = "r-efi"
 version = "6.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f8dcc9c7d52a811697d2151c701e0d08956f92b0e24136cf4cf27b57a6a0d9bf"
-
-[[package]]
-name = "radium"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dc33ff2d4973d518d823d61aa239014831e521c75da58e3df4840d3f47749d09"
 
 [[package]]
 name = "rand"
@@ -1189,12 +1092,6 @@ dependencies = [
  "quote",
  "unicode-ident",
 ]
-
-[[package]]
-name = "tap"
-version = "1.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "55937e1799185b12863d447f42597ed69d9928686b8d88a1df17376a097d8369"
 
 [[package]]
 name = "thiserror"
@@ -1533,38 +1430,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f593a95398737aeed53e489c785df13f3618e41dbcd6718c6addbf1395aa6876"
 dependencies = [
  "memchr",
-]
-
-[[package]]
-name = "wyz"
-version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "05f360fc0b24296329c78fda852a1e9ae82de9cf7b27dae4b7f62f118f77b9ed"
-dependencies = [
- "tap",
-]
-
-[[package]]
-name = "yaxpeax-arch"
-version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "36274fcc5403da2a7636ffda4d02eca12a1b2b8267b9d2e04447bd2ccfc72082"
-dependencies = [
- "num-traits",
- "serde",
- "serde_derive",
-]
-
-[[package]]
-name = "yaxpeax-arm"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d8aa9155f0d727d10e91e5a94f68f415ec24c7a5faab4eac2386a1069e4a02d7"
-dependencies = [
- "bitvec",
- "serde",
- "serde_derive",
- "yaxpeax-arch",
 ]
 
 [[package]]
