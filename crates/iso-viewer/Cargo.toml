@@ -17,7 +17,10 @@ stack_dst = { version = "0.8.1", default-features = false, features = [] }
 crc = { version = "3.4.0" }
 hadris-iso = { path = "C:\\repos\\hadris\\crates\\optical\\hadris-iso" }
 hadris-fat = { path = "C:\\repos\\hadris\\crates\\block\\hadris-fat" }
+bytemuck = "*"
 thiserror = { version = "2.0.20", default-features = false }
+hex = "0.4.3"
+log = "0.4.29"
 
 [features]
 default = ["alloc"]
