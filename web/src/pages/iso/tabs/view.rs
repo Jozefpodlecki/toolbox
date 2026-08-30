@@ -1,7 +1,7 @@
 use yew::prelude::*;
 use yew_icons::{Icon, IconData};
 
-use crate::pages::{*, iso::types::*};
+use crate::pages::{iso::{tabs::{explorer::FileExplorerView, summary::SummaryView, visual::VisualView}, types::*}, *};
 
 #[function_component(Tabs)]
 pub fn tabs() -> Html {
@@ -41,44 +41,11 @@ pub fn tab_content(props: &TabContentProps) -> Html {
         IsoViewerTab::FileExplorer => html! { <FileExplorerView /> },
         IsoViewerTab::Visual => html! { <VisualView /> },
         IsoViewerTab::Debug => html! { <DebugView /> },
-        IsoViewerTab::RawLogs => html! { <RawLogsView /> },
+        IsoViewerTab::Logs => html! { <RawLogsView /> },
         IsoViewerTab::Error => html! { <ErrorView /> },
     }
 }
 
-#[function_component(SummaryView)]
-pub fn summary_view() -> Html {
-    let context = use_context::<IsoViewerContext>().unwrap();
-    let state = context.state();
-
-    if let Some(iso) = &state.iso {
-        html! {
-            <div class="space-y-2">
-                <h2 class="text-lg font-bold text-white">{"Summary"}</h2>
-                <p class="text-gray-400">{format!("Volume: {}", iso.volume_name.clone().unwrap_or_default())}</p>
-                <p class="text-gray-400">{format!("Sectors: {}", iso.total_size / iso.sector_size as u64)}</p>
-                <p class="text-gray-400">{format!("Files: {}", iso.file_count)}</p>
-            </div>
-        }
-    } else {
-        html! {
-            <div class="text-gray-400">{"No ISO loaded"}</div>
-        }
-    }
-}
-
-#[function_component(FileExplorerView)]
-pub fn file_explorer_view() -> Html {
-    let context = use_context::<IsoViewerContext>().unwrap();
-    let state = context.state();
-
-    html! {
-        <div class="text-gray-400">
-            <h2 class="text-lg font-bold text-white">{"File Explorer"}</h2>
-            <p>{"File explorer coming soon..."}</p>
-        </div>
-    }
-}
 
 #[function_component(RawLogsView)]
 pub fn raw_logs_view() -> Html {
@@ -130,17 +97,6 @@ pub fn debug_view() -> Html {
     }
 }
 
-#[function_component(VisualView)]
-pub fn visual_view() -> Html {
-    let context = use_context::<IsoViewerContext>().unwrap();
-
-    html! {
-        <div class="text-gray-400">
-            <h2 class="text-lg font-bold text-white">{"Visual"}</h2>
-            <p>{"Visual view coming soon..."}</p>
-        </div>
-    }
-}
 
 #[derive(Properties, PartialEq)]
 pub struct TabButtonProps {

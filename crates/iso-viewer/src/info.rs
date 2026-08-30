@@ -1,88 +1,70 @@
-use alloc::collections::BTreeMap;
-
-use alloc::string::{String, ToString};
+use alloc::{collections::BTreeMap, string::{String, ToString}};
 use alloc::vec::Vec;
+use core::fmt::Write;
 
 use crate::*;
+use crate::parser::*;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, PartialEq)]
 pub struct IsoInfo {
     pub data: Vec<u8>,
-    pub sector_size: u16,
-    pub total_size: u64,
-    pub file_count: usize,
-    pub root_entries: Vec<DirectoryEntry>,
-    pub volume_name: Option<String>,
-    pub system_id: Option<String>,
-    pub is_hybrid: bool,
-    pub has_boot_catalog: bool,
-    pub boot_entries: Vec<BootEntryInfo>,
-    pub metadata: BTreeMap<String, String>,
+    pub identity: IsoIdentity,
+    pub stats: IsoStats,
+    pub structures: IsoStructures,
 }
 
+
 impl IsoInfo {
-    pub fn open(data: Vec<u8>) -> (IsoResult<IsoInfo>, Logger) {
-        let mut logger = Logger::new();
-        logger.log("Starting ISO parsing");
+    pub fn open<W: Write>(data: Vec<u8>, logger: &mut W) -> IsoResult<Self> {
+        writeln!(logger, "Starting ISO parsing ({})", FormattedSize::from(data.len()))?;
 
-        // let iso_image = hadris
-
-        let (volume_name, system_id, root_lba, root_size) = match parse_iso_volume_descriptor(&data, &mut logger) {
-            Ok(value) => value,
-            Err(e) => {
-                logger.log_format("Failed to parse volume descriptor", &e);
-                return (Err(e), logger);
-            }
-        };
-
-        let root_entries = match parse_directory(&data, root_lba, root_size, &mut logger) {
-            Ok(entries) => entries,
-            Err(e) => {
-                logger.log_format("Failed to parse root directory", &e);
-                return (Err(e), logger);
-            }
-        };
-
-        let (has_boot_catalog, boot_entries) = match parse_boot_catalog(&data, &mut logger) {
-            Ok(value) => value,
-            Err(e) => {
-                logger.log_format("Failed to parse boot catalog", &e);
-                return (Err(e), logger);
-            }
-        };
-
-        let is_hybrid = check_hybrid(&data);
-        logger.log_format("ISO is hybrid", is_hybrid);
-
-        let file_count = count_files(&root_entries);
-        logger.log_format("Total files found", file_count);
-
-        let mut metadata = BTreeMap::new();
-        if let Some(ref name) = volume_name {
-            metadata.insert("Volume Name".to_string(), name.clone());
+        let result = Self::parse(data, logger);
+        if let Ok(ref info) = result {
+            writeln!(
+                logger,
+                "ISO parsing completed: {} files, {} directories, max depth {}",
+                info.stats.file_count,
+                info.stats.directory_count,
+                info.stats.max_depth
+            )?;
         }
-        if let Some(ref id) = system_id {
-            metadata.insert("System ID".to_string(), id.clone());
-        }
-        metadata.insert("Sector Size".to_string(), format!("{} bytes", ISO_SECTOR_SIZE));
 
-        logger.log("ISO parsing completed successfully");
+        result
+    }
 
-        let total_size = data.len() as u64;
-        let info = IsoInfo {
+    fn parse<W: Write>(data: Vec<u8>, logger: &mut W) -> IsoResult<Self> {
+        let (identity, root_lba, root_size) = VolumeDescriptor::parse(&data, logger)?;
+
+        let root_entries = Directories::parse(&data, root_lba, root_size, logger)?;
+        let boot_catalog = BootCatalogInfo::parse(&data, logger)?;
+        let partition_info = Partitions::parse(&data, logger)?;
+
+        let file_count = root_entries.count_files();
+        let directory_count = root_entries.count_directories();
+        let max_depth = root_entries.max_depth();
+
+        let total_size = FileSize::new(data.len() as u64);
+        let total_sectors = (data.len() / ISO_SECTOR_SIZE) as u64;
+
+        let mut metadata = IsoMetadata::new();
+
+        Ok(Self {
             data,
-            sector_size: ISO_SECTOR_SIZE as u16,
-            total_size,
-            file_count,
-            root_entries,
-            volume_name,
-            system_id,
-            is_hybrid,
-            has_boot_catalog,
-            boot_entries,
-            metadata,
-        };
-
-        (Ok(info), logger)
+            identity,
+            stats: IsoStats {
+                file_count,
+                directory_count,
+                max_depth,
+                total_size,
+                total_sectors,
+                sector_size: ISO_SECTOR_SIZE as u16,
+            },
+            structures: IsoStructures {
+                root_entries,
+                partition_info,
+                boot_catalog,
+                metadata,
+            },
+        })
     }
 }

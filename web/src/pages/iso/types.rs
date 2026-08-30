@@ -21,7 +21,7 @@ pub enum IsoViewerTab {
     FileExplorer,
     Visual,
     Debug,
-    RawLogs,
+    Logs,
     Error,
 }
 
@@ -32,7 +32,7 @@ impl IsoViewerTab {
             Self::FileExplorer => "File Explorer",
             Self::Visual => "Visual",
             Self::Debug => "Debug",
-            Self::RawLogs => "Raw Logs",
+            Self::Logs => "Logs",
             Self::Error => "Error",
         }
     }
@@ -43,7 +43,7 @@ impl IsoViewerTab {
             Self::FileExplorer => "file-explorer",
             Self::Visual => "visual",
             Self::Debug => "debug",
-            Self::RawLogs => "raw-logs",
+            Self::Logs => "logs",
             Self::Error => "error",
         }
     }
@@ -55,7 +55,7 @@ impl IsoViewerTab {
             Self::FileExplorer => IconData::LUCIDE_FOLDER_OPEN,
             Self::Visual => IconData::LUCIDE_LAYOUT_GRID,
             Self::Debug => IconData::LUCIDE_BUG,
-            Self::RawLogs => IconData::LUCIDE_TERMINAL,
+            Self::Logs => IconData::LUCIDE_TERMINAL,
             Self::Error => IconData::LUCIDE_CROSS,
         }
     }
@@ -63,7 +63,7 @@ impl IsoViewerTab {
     pub const fn for_error() -> &'static [Self] {
         &[
             Self::Error,
-            Self::RawLogs,
+            Self::Logs,
         ]
     }
 
@@ -73,7 +73,7 @@ impl IsoViewerTab {
             Self::FileExplorer,
             Self::Visual,
             Self::Debug,
-            Self::RawLogs,
+            Self::Logs,
         ]
     }
 }
@@ -85,7 +85,7 @@ impl From<&str> for IsoViewerTab {
             "file-explorer" => Self::FileExplorer,
             "visual" => Self::Visual,
             "debug" => Self::Debug,
-            "raw-logs" => Self::RawLogs,
+            "logs" => Self::Logs,
             "error" => Self::Error,
             _ => Self::Summary,
         }

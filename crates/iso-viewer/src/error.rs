@@ -3,6 +3,9 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum IsoError {
+    #[error("Formatting error: {0}")]
+    Fmt(#[from] core::fmt::Error),
+
     #[error("File is too small to be a valid ISO (minimum size: {min_size} bytes)")]
     FileTooSmall {
         min_size: usize,
@@ -54,3 +57,5 @@ pub enum IsoError {
     #[error("Invalid UTF-8 in directory entry name: {name:?}")]
     InvalidUtf8 { name: Vec<u8> },
 }
+
+pub type IsoResult<T> = Result<T, IsoError>;

@@ -1,7 +1,7 @@
 use std::ops::Deref;
 use std::rc::Rc;
 
-use iso_viewer::IsoInfo;
+use iso_viewer::{IsoInfo};
 use yew::prelude::*;
 use yew_icons::{Icon, IconData};
 
@@ -18,7 +18,8 @@ pub fn iso_viewer() -> Html {
         
         use_effect_with((), move |_| {
             let test_iso = include_bytes!(r#"C:\repos\jaos\bootable-isobemak.iso"#);
-            let (info, logger) = IsoInfo::open(test_iso.to_vec());
+            let mut logger = Logger::new();
+            let info = IsoInfo::open(test_iso.to_vec(), &mut logger);
             
             dispatcher.dispatch(IsoViewerAction::Load{
                 info,
@@ -31,7 +32,8 @@ pub fn iso_viewer() -> Html {
         let dispatcher = context.dispatch();
 
         Callback::from(move |data: Vec<u8>| {
-            let (info, logger) = IsoInfo::open(data);
+            let mut logger = Logger::new();
+            let info = IsoInfo::open(data, &mut logger);
 
             dispatcher.dispatch(IsoViewerAction::Load{
                 info,

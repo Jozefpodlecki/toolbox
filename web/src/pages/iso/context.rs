@@ -1,10 +1,9 @@
 use std::rc::Rc;
 
-use iso_viewer::{IsoInfo, IsoResult, Logger};
+use iso_viewer::{DirectoryEntry, IsoInfo, IsoResult};
 use yew::prelude::*;
-use crate::pages::{ViewState, iso::types::IsoViewerTab};
+use crate::pages::{Logger, ViewState, iso::types::IsoViewerTab};
 
-#[derive(Debug)]
 pub enum IsoViewerAction {
     Load {
         info: IsoResult<IsoInfo>,
@@ -21,7 +20,9 @@ pub struct IsoViewerState {
     pub state: ViewState,
     pub active_tab: IsoViewerTab,
     pub logs: Rc<[Rc<str>]>,
-    pub error_message: Option<Rc<str>>
+    pub error_message: Option<Rc<str>>,
+    pub current_path: String,
+    pub current_entries: Vec<DirectoryEntry>
 }
 
 impl IsoViewerState {
@@ -29,9 +30,11 @@ impl IsoViewerState {
         Self {
             iso: None,
             state: ViewState::Idle,
-            active_tab: IsoViewerTab::Summary,
+            active_tab: IsoViewerTab::Visual,
             logs: Rc::default(),
             error_message: None,
+            current_path: String::new(),
+            current_entries: vec![]
         }
     }
 }
@@ -43,14 +46,18 @@ impl Reducible for IsoViewerState {
         match action {
             IsoViewerAction::Load {
                 info,
-                logger
+                mut logger
             } => {
 
                 let (iso, error_message) = match info {
                     Ok(iso) => (Some(iso), None),
-                    Err(error) => (None, Some(error.to_string().into())),
+                    Err(error) => {
+                        let message: Rc<str> = error.to_string().into();
+                        logger.log(&*message);
+                        (None, Some(message))
+                    },
                 };
-                log::info!("test  {:?}", error_message);
+
                 Rc::new(Self {
                     state: ViewState::Loaded,
                     iso,
