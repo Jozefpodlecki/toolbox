@@ -21,9 +21,9 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: '22'
-      - run: npm install
+      - run: npm ci
         working-directory: ./web
-      - uses: jetli/trunk-action@v0.5.0
+      - uses: jetli/trunk-action@v0.5.1
       - run: rustup target add wasm32-unknown-unknown
         working-directory: ./web
       - run: trunk build --release

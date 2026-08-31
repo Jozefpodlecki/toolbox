@@ -20,14 +20,14 @@ ignore = [
     ".gitignore"
 ]
 
-[[hooks]]
-stage = "pre_build"
-command = "powershell"
-command_arguments = [
-    "npx",
-    # "--quiet",
-    "@tailwindcss/cli",
-    "-i", "./styles/main.css",
-    "-o", "./styles/output.css",
-    "*> $null"
-]
+# [[hooks]]
+# stage = "pre_build"
+# command = "powershell"
+# command_arguments = [
+#     "npx",
+#     # "--quiet",
+#     "@tailwindcss/cli",
+#     "-i", "./styles/main.css",
+#     "-o", "./styles/output.css",
+#     "*> $null"
+# ]
