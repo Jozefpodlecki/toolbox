@@ -25,6 +25,7 @@ jobs:
         working-directory: ./web
       - uses: jetli/trunk-action@v0.5.1
       - run: rustup target add wasm32-unknown-unknown
+      - run: npx @tailwindcss/cli -i ./styles/main.css -o ./styles/output.css --minify 
         working-directory: ./web
       - run: trunk build --release --public-url /toolbox/
         working-directory: ./web
