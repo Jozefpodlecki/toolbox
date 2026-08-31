@@ -26,10 +26,10 @@ jobs:
       - uses: jetli/trunk-action@v0.5.1
       - run: rustup target add wasm32-unknown-unknown
         working-directory: ./web
-      - run: trunk build --release
+      - run: trunk build --release --public-url /toolbox/
         working-directory: ./web
       - uses: actions/configure-pages@v6
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: ./web/dist/
       # - uses: actions/upload-artifact@v7
