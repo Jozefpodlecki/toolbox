@@ -13,20 +13,20 @@ pub fn iso_viewer() -> Html {
     let context = use_context::<IsoViewerContext>().unwrap();
     let state = context.state();
     
-    {
-        let dispatcher = context.dispatch();
+    // {
+    //     let dispatcher = context.dispatch();
         
-        use_effect_with((), move |_| {
-            let test_iso = include_bytes!(r#"C:\repos\jaos\bootable-isobemak.iso"#);
-            let mut logger = Logger::new();
-            let info = IsoInfo::open(test_iso.to_vec(), &mut logger);
+    //     use_effect_with((), move |_| {
+    //         let test_iso = include_bytes!(r#"C:\repos\jaos\bootable-isobemak.iso"#);
+    //         let mut logger = Logger::new();
+    //         let info = IsoInfo::open(test_iso.to_vec(), &mut logger);
             
-            dispatcher.dispatch(IsoViewerAction::Load{
-                info,
-                logger
-            });
-        });
-    }
+    //         dispatcher.dispatch(IsoViewerAction::Load{
+    //             info,
+    //             logger
+    //         });
+    //     });
+    // }
 
     let on_load = {
         let dispatcher = context.dispatch();
