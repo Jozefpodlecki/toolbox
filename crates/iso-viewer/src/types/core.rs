@@ -273,6 +273,10 @@ impl Lba {
         self.0
     }
 
+    pub const fn as_u64(self) -> u64 {
+        self.0 as u64
+    }
+
     pub fn from_slice(bytes: &[u8]) -> IsoResult<Self> {
         if bytes.len() < 4 {
             return Err(IsoError::ParseError {

@@ -1,6 +1,6 @@
 use alloc::{collections::BTreeSet, vec::Vec};
 use core::fmt::Write;
-use crate::*;
+use crate::{constants::*, *};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct DirectoryEntry {
@@ -9,6 +9,7 @@ pub struct DirectoryEntry {
     pub size: FileSize,
     pub lba: Lba,
     pub children: Directories,
+    pub extent_size: usize,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -132,6 +133,7 @@ impl Directories {
                 size: file_size,
                 lba: file_lba,
                 children: Directories(children),
+                extent_size: 0
             })
         } else {
             None

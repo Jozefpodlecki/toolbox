@@ -78,6 +78,22 @@ impl IsoViewerTab {
     }
 }
 
+impl core::str::FromStr for IsoViewerTab {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "summary" => Ok(Self::Summary),
+            "file-explorer" => Ok(Self::FileExplorer),
+            "visual" => Ok(Self::Visual),
+            "debug" => Ok(Self::Debug),
+            "logs" => Ok(Self::Logs),
+            "error" => Ok(Self::Error),
+            _ => Err(format!("Unknown tab: {}", s)),
+        }
+    }
+}
+
 impl From<&str> for IsoViewerTab {
     fn from(s: &str) -> Self {
         match s {

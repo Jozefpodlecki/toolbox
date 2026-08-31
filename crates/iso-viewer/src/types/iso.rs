@@ -1,4 +1,5 @@
-use alloc::string::String;
+use alloc::{string::String, vec::Vec};
+use hadris_iso::joliet::JolietLevel;
 
 use crate::{BootCatalogInfo, Directories, Parser, types::*};
 
@@ -8,6 +9,38 @@ pub struct IsoStructures {
     pub partition_info: PartitionInfo,
     pub boot_catalog: BootCatalogInfo,
     pub metadata: IsoMetadata,
+    pub volume_set: VolumeSet,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct VolumeSet {
+    pub primary: PrimaryInfo,
+    pub supplementary: Vec<SupplementaryInfo>,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct PrimaryInfo {
+    pub identity: IsoIdentity,
+    pub root_lba: Lba,
+    pub root_size: FileSize,
+    pub path_table: PathTableInfo,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct SupplementaryInfo {
+    pub identity: IsoIdentity,
+    pub root_lba: Lba,
+    pub root_size: FileSize,
+    pub path_table: PathTableInfo,
+    pub is_evd: bool,
+    pub joliet_level: Option<JolietLevel>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct PathTableInfo {
+    pub lpt: Lba,
+    pub mpt: Lba,
+    pub size: u64,
 }
 
 #[derive(Clone, Debug, PartialEq)]

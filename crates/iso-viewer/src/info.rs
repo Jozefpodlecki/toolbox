@@ -1,14 +1,13 @@
-use alloc::{collections::BTreeMap, string::{String, ToString}};
+use alloc::{collections::BTreeMap, rc::Rc, string::{String, ToString}};
 use alloc::vec::Vec;
 use core::fmt::Write;
 
-use crate::*;
+use crate::{constants::*, *};
 use crate::parser::*;
 
 #[derive(Clone, PartialEq)]
 pub struct IsoInfo {
-    pub data: Vec<u8>,
-    pub identity: IsoIdentity,
+    pub data: Rc<[u8]>,
     pub stats: IsoStats,
     pub structures: IsoStructures,
 }
@@ -33,9 +32,9 @@ impl IsoInfo {
     }
 
     fn parse<W: Write>(data: Vec<u8>, logger: &mut W) -> IsoResult<Self> {
-        let (identity, root_lba, root_size) = VolumeDescriptor::parse(&data, logger)?;
+        let volume_set = VolumeDescriptor::parse(&data, logger)?;
 
-        let root_entries = Directories::parse(&data, root_lba, root_size, logger)?;
+        let root_entries = Directories::parse(&data, volume_set.primary.root_lba, volume_set.primary.root_size, logger)?;
         let boot_catalog = BootCatalogInfo::parse(&data, logger)?;
         let partition_info = Partitions::parse(&data, logger)?;
 
@@ -49,8 +48,7 @@ impl IsoInfo {
         let mut metadata = IsoMetadata::new();
 
         Ok(Self {
-            data,
-            identity,
+            data: data.into(),
             stats: IsoStats {
                 file_count,
                 directory_count,
@@ -64,6 +62,7 @@ impl IsoInfo {
                 partition_info,
                 boot_catalog,
                 metadata,
+                volume_set
             },
         })
     }

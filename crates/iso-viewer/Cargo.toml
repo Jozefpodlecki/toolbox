@@ -15,9 +15,9 @@ bitflags = "2.13.1"
 heapless = "0.9.3"
 stack_dst = { version = "0.8.1", default-features = false, features = [] }
 crc = { version = "3.4.0" }
-hadris-iso = { path = "C:\\repos\\hadris\\crates\\optical\\hadris-iso" }
-hadris-fat = { path = "C:\\repos\\hadris\\crates\\block\\hadris-fat" }
-bytemuck = "*"
+hadris-iso = { version = "2.2.0" }
+hadris-fat = { version = "2.2.0" }
+bytemuck = "1.25.2"
 thiserror = { version = "2.0.20", default-features = false }
 hex = "0.4.3"
 log = "0.4.29"

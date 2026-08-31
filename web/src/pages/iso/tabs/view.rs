@@ -1,7 +1,9 @@
+use wasm_bindgen::JsCast;
+use web_sys::HtmlElement;
 use yew::prelude::*;
 use yew_icons::{Icon, IconData};
 
-use crate::pages::{iso::{tabs::{explorer::FileExplorerView, summary::SummaryView, visual::VisualView}, types::*}, *};
+use crate::pages::{iso::{tabs::{debug::DebugView, explorer::FileExplorerView, logs::RawLogsView, summary::SummaryView, visual::VisualView}, types::*}, *};
 
 #[function_component(Tabs)]
 pub fn tabs() -> Html {
@@ -11,8 +13,9 @@ pub fn tabs() -> Html {
     let on_tab_change = {
         let dispatch = context.dispatch();
         Callback::from(move |event: MouseEvent| {
-            let element = event.target_unchecked_into::<web_sys::HtmlElement>();
-            let tab = element.dataset().get("tab").unwrap();
+            let target = event.target_unchecked_into::<HtmlElement>();
+            let effective: HtmlElement = target.closest("[data-tab]").ok().flatten().unwrap().unchecked_into();
+            let tab: IsoViewerTab = effective.dataset().get("tab").unwrap().parse().unwrap();
             dispatch.dispatch(IsoViewerAction::SetTab(IsoViewerTab::from(tab)));
         })
     };
@@ -45,58 +48,6 @@ pub fn tab_content(props: &TabContentProps) -> Html {
         IsoViewerTab::Error => html! { <ErrorView /> },
     }
 }
-
-
-#[function_component(RawLogsView)]
-pub fn raw_logs_view() -> Html {
-    let context = use_context::<IsoViewerContext>().unwrap();
-    let state = context.state();
-    let logs = &state.logs;
-
-    if logs.is_empty() {
-        return html! {
-            <div class="flex items-center justify-center h-full text-gray-500 text-sm">
-                {"No logs available"}
-            </div>
-        };
-    }
-
-    html! {
-        <div class="bg-black rounded-lg p-3 font-mono text-xs h-full overflow-auto">
-            { for logs.iter().enumerate().map(|(i, entry)| {
-                let is_error = entry.contains("Error") || entry.contains("error");
-                let is_warning = entry.contains("Warning") || entry.contains("warning");
-                let color = if is_error {
-                    "text-red-400"
-                } else if is_warning {
-                    "text-yellow-400"
-                } else {
-                    "text-gray-300"
-                };
-
-                html! {
-                    <div key={i} class={classes!("py-0.5", color)}>
-                        <span class="text-gray-600 mr-2">{format!("[{}]", i + 1)}</span>
-                        {entry}
-                    </div>
-                }
-            })}
-        </div>
-    }
-}
-
-#[function_component(DebugView)]
-pub fn debug_view() -> Html {
-    let context = use_context::<IsoViewerContext>().unwrap();
-
-    html! {
-        <div class="text-gray-400">
-            <h2 class="text-lg font-bold text-white">{"Debug"}</h2>
-            <p>{"Debug view coming soon..."}</p>
-        </div>
-    }
-}
-
 
 #[derive(Properties, PartialEq)]
 pub struct TabButtonProps {

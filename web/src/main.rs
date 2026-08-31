@@ -1,6 +1,7 @@
 #![allow(unused_imports, dead_code, unused_variables, unused)]
 
 mod app;
+mod utils;
 mod components;
 mod pages;
 mod storage;
